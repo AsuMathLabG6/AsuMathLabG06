@@ -39,7 +39,7 @@ and finally reading from file again and handling it's output like this file :**_
 
 **C = [[B [3.4; 2.1; 3.5+9.1]]**
 
-     **1.2^3 3+1.2 15/(2.1+10*sin(0.12)) 1.2]**
+     1.2^3 3+1.2 15/(2.1+10*sin(0.12)) 1.2]
      
 **D = rand(4,4)**
 
