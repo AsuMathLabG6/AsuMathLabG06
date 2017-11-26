@@ -23,7 +23,8 @@ _**This is Phase number one which :**_
 
 **5.Proccess input file ,show each step result then exit.**
 
-##in phase 2 we will handle multiple operations like power of matrix , power of matrix element by element , arithimatic operations , 
+##In Phase 2 
+_**we will handle multiple operations like power of matrix , power of matrix element by element , arithimatic operations , 
 triogomatric functions , adding row , adding column in our matrix , dealing with multiple matrices like eye , ones ,zeros and so on
 and finally reading from file again and handling it's output like this file:**_
 
