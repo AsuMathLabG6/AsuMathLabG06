@@ -526,6 +526,19 @@ for(int i=0;i<nR;i++)
 value*=d.values[i][i];
 return value;
 }
+/*It multplies the matrix by itself n times
+where n is the power of the matrix*/
+CMatrix &CMatrix::power_matrix(CMatrix &matrix, int number)
+{
+	if (number <= 0)
+		throw("Power must be positive Integer");
+	if (number == 1)
+		return matrix;
+	else
+	{
+		return matrix * power_matrix(matrix, number - 1);
+	}
+}
 /* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
 CMatrix &CMatrix::sqrt_matrix(CMatrix &matrix)
 {
