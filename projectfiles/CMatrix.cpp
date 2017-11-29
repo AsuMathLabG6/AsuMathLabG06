@@ -536,14 +536,18 @@ double CMatrix::FastestDeterminant()
 where n is the power of the matrix*/
 CMatrix &CMatrix::power_matrix(CMatrix &matrix, int number)
 {
+	static CMatrix temp = matrix;
 	if (number <= 0)
 		throw("Power must be positive Integer");
 	if (number == 1)
 		return matrix;
 	else
 	{
-		return matrix * power_matrix(matrix, number - 1);
+
+		for (int i = 0; i < number; i++)
+			temp *= matrix;
 	}
+	return temp;
 }
 /* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
 CMatrix &CMatrix::sqrt_matrix(CMatrix &matrix)
