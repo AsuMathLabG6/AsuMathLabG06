@@ -3,23 +3,62 @@
 #include "CMatrix.h"
 #include "stdarg.h"
 #include <algorithm>
+#include <math.h>
 #include <string>
 #include <fstream>
-//F = A / B
 using namespace std;
 #define size 100
-enum MI{ MI_ZEROS, MI_ONES, MI_EYE, MI_RAND, MI_VALUE };
+//enum MI{ MI_ZEROS, MI_ONES, MI_EYE, MI_RAND, MI_VALUE };
+CMatrix& eye(int nr,int nc)
+{
+static CMatrix w;
+CMatrix temp(nr,nc,2);
+w=temp;
+return w;
+}
+CMatrix& rand(int nr,int nc)
+{
+static CMatrix w;
+CMatrix temp(nr,nc,3);
+w=temp;
+return w;
+}
+CMatrix& zeros(int nr,int nc)
+{
+static CMatrix w;
+CMatrix temp(nr,nc,0);
+w=temp;
+return w;
+}
+CMatrix& ones(int nr,int nc)
+{
+static CMatrix w;
+CMatrix temp(nr,nc,1);
+w=temp;
+return w;
+}
 int num_elements = 0;
+char out = 'a';
+int my_count = 0;
 bool is_found(char c, char*  array_chars);
 void reserve(CMatrix* array_matrices, string x);
 void insert_name(char* array_chars, char y);
 int get_index(char * array_chars, char operand_name);
-string operationg(CMatrix* array_matrices, char* array_chars, int size_array,char first_operand, string operation, char output,char second_operand,double d=0 );
+string operationg(CMatrix* array_matrices, char* array_chars,char first_operand, string operation, char output,char second_operand,double d1=0,double d2=0);
 void check_print (string output, bool is_semicolon);
+double do_operation_line (string line);
+int get_num_ops (string line , string operations);
+string excute (string line , string operation , int position_operation);
+string handle_excute (string line , string operations ,int no_operations);
+int get_num_ops_matrices (string line , string operations []);
+string excute_matrices_ops(string line , int no_operations , string * operations , CMatrix* array_matrices , char* array_chars);
+
+string excute_matrix (string line , string op , int pos , CMatrix* array_matrices , char* array_chars );
 int main(int argc, char* argv[])
 {
 char array_chars [size];
 CMatrix array_matrices [size] ;
+/*
 //if (argc == 2)
 //{
 //argv[1]
@@ -98,7 +137,7 @@ if (!infile.bad())
 		{
 		if(get_input.find(";")==4)
 			is_semicolon=true;
-		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(2,1).c_str()),get_input.substr(3,1),c,0),is_semicolon);
+		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(2,1).c_str()),get_input.substr(3,1),c,0,0),is_semicolon);
 		}else if(get_input.find(".")==-1)
 		{
 		if(get_input.find(";")!=-1)
@@ -125,7 +164,7 @@ if (!infile.bad())
 	}
 infile.close();
 }else
-cout<<"File read failed."<<endl;
+cout<<"File read failed."<<endl;*/
 return 0;
 }
 istream& operator >> (istream &is, CMatrix& m)
@@ -182,7 +221,7 @@ int get_index(char * array_chars, char operand_name)
 	}
 }
 //array_matrices is the dynamic array of matrices
-string operationg(CMatrix* array_matrices, char* array_chars, int size_array,char first_operand, string operation,char output, char second_operand,double d )
+string operationg(CMatrix* array_matrices, char* array_chars,char first_operand, string operation,char output, char second_operand,double d1,double d2)
 {
 	int index_first_operand, index_second_operand, index_output;
 	index_first_operand = get_index(array_chars, first_operand);
@@ -214,9 +253,27 @@ string operationg(CMatrix* array_matrices, char* array_chars, int size_array,cha
 	{
 		array_matrices[index_output] = array_matrices[index_first_operand].getTranspose();
 		required = array_matrices[index_output].getString();
-    }else if(operation=="./")
+    }else if(operation=="./"&&d2==0)
 	{
-		array_matrices[index_output] = division_by_element(d,array_matrices[index_first_operand]);
+		array_matrices[index_output] = division_by_element(d1,array_matrices[index_first_operand]);
+		required = array_matrices[index_output].getString();
+    }else if(operation=="./"&&d1==0)
+	{
+		array_matrices[index_first_operand] /= d2;
+		array_matrices[index_output] = array_matrices[index_first_operand];
+		required = array_matrices[index_output].getString();
+    }else if(operation==".+")
+	{
+        array_matrices[index_first_operand]+=d2;
+		array_matrices[index_output] = array_matrices[index_first_operand];
+		required = array_matrices[index_output].getString();
+    }else if(operation=="^")
+	{
+		array_matrices[index_output] = power_matrix(array_matrices[index_first_operand],int(d2));
+		required = array_matrices[index_output].getString();
+    }else if(operation==".^")
+	{
+        array_matrices[index_output] = power_by_element(array_matrices[index_first_operand],d2);
 		required = array_matrices[index_output].getString();
     }
 	return required;
@@ -242,6 +299,458 @@ void check_print (string output, bool is_semicolon)
     return output;
 }
 
+CMatrix & power_by_element (CMatrix& l , double power)
+{
+    static CMatrix output(l.nR,l.nC) ;
+    for(int i=0;i<l.nR;i++)
+    {
+        for(int j=0;j<l.nC;j++)
+        {
+                output.values[i][j] = pow(l.values[i][j],power);
+        }
+    }
+    return output;
+}
+/*It multplies the matrix by itself n times
+where n is the power of the matrix*/
+CMatrix & power_matrix(CMatrix &matrix, int number)
+{
+	if (number <= 0)
+		throw("Power must be positive Integer");
+	if (number == 1)
+		return matrix;
+	else
+	{
+		return matrix * power_matrix(matrix, number - 1);
+	}
+}
+CMatrix & unityMatrix(int num)
+{
+	static CMatrix temp(num, num, 0);
+	for (int i = 0; i < num; i++)
+	{
+		temp.values[i][i] = 1.0;
+	}
+	return temp;
+}
+/* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
+CMatrix & sqrt_matrix(CMatrix &matrix)
+{
+	if (matrix.nC != matrix.nR)
+		throw("Matrix must be square matrix (of equal dimensions)");
+	double taw = getTrace(matrix), dtrm = matrix.getDeterminant();
+	double s = sqrt(dtrm);
+	float t = sqrt(2 * s + taw);
+	return (matrix + (unityMatrix(matrix.nR) * s)) * (1.0 / t);
+}
+
+float getTrace(CMatrix &mat)
+{
+	float temp = 0;
+	for (int i = 0; i < mat.nR; i++)
+	{
+		temp += mat.values[i][i];
+	}
+	return temp;
+}
+//operations on matrices and get out matrix of the operation
+string do_operation_matrices (string line , CMatrix* array_matrices , char* array_chars )
+{
+    string with_no_space;
+    string seperators = " ";
+    for(int o=0;o<line.length();o++)
+    {
+        if(line.substr(o,1)==seperators)
+            line.erase(o,1);
+    }
+    with_no_space = line;
+    string c [7] = {"^",".^","/","./","*","+","-"};
+    while(with_no_space.find("sin")!=-1)
+    {
+        CMatrix temp ;
+        string rep ;
+        int end1 = with_no_space.find(")",with_no_space.find("sin"));
+        string inter = with_no_space.substr(with_no_space.find("sin")+4,end1-with_no_space.find("sin")+4);
+        if(inter.length()==1&&(inter[1]>='A'||inter[1]<='Z'||inter[1]>='a'||inter[1]<='z'))
+           {
+            int x = get_index(array_chars,*((const char*)inter.substr(1,1).c_str())) ;
+            //temp = sqrt_matrix(array_matrices[x]) ;
+            temp = array_matrices[x].sin_matrix();
+           }else
+           {
+           string q = excute_matrices_ops(inter, get_num_ops_matrices (inter,c) , c , array_matrices , array_chars);
+           int x = get_index(array_chars,*((const char*)q.substr(1,1).c_str())) ;
+            //temp = sqrt_matrix(array_matrices[x]) ;
+            temp = array_matrices[x].sin_matrix();
+           }
+           insert_name(array_chars,char(out+my_count));
+           string result = temp.getString();
+           rep = char(out+my_count);
+           int start = with_no_space.find("sin");
+           with_no_space.replace(start,(end1+1-start),rep);
+           reserve(array_matrices, result);
+           my_count++;
+    }
+    while(with_no_space.find("sqrt")!=-1)
+    {
+        CMatrix temp ;
+        string rep ;
+        int end1 = with_no_space.find(")",with_no_space.find("sqrt"));
+        string inter = with_no_space.substr(with_no_space.find("sqrt")+5,end1-with_no_space.find("sqrt")+5);
+        if(inter.length()==1&&(inter[1]>='A'||inter[1]<='Z'||inter[1]>='a'||inter[1]<='z'))
+           {
+            int x = get_index(array_chars,*((const char*)inter.substr(1,1).c_str())) ;
+            temp = sqrt_matrix(array_matrices[x]) ;
+            //temp = array_matrices[x].sin_matrix();
+           }else
+           {
+           string q = excute_matrices_ops(inter, get_num_ops_matrices (inter,c) , c , array_matrices , array_chars);
+           int x = get_index(array_chars,*((const char*)q.substr(1,1).c_str())) ;
+           temp = sqrt_matrix(array_matrices[x]) ;
+            //temp = array_matrices[x].sin_matrix();
+           }
+           insert_name(array_chars,char(out+my_count));
+           string result = temp.getString();
+           rep = char(out+my_count);
+           int start = with_no_space.find("sqrt");
+           with_no_space.replace(start,(end1+1-start),rep);
+           reserve(array_matrices, result);
+           my_count++;
+    }
+    while(with_no_space.find("(")!=-1&&with_no_space.find(")")!=-1)
+    {
+        int start1 = with_no_space.find("(");
+        int end1 = with_no_space.find(")");
+        while(with_no_space.find("(",start1+1)!=-1)
+        {
+        int start2 = with_no_space.find("(",start1+1);
+        int end2 = with_no_space.find(")",start2+1);
+        if(end2>end1)
+            break;
+        string internal_line = with_no_space.substr(start2+1,(end2-(start2+1)));
+        int no_ops = get_num_ops_matrices(internal_line,c);
+        internal_line = excute_matrices_ops(internal_line,no_ops,c, array_matrices , array_chars);
+        with_no_space.replace(start2,(end2+1)-start2,internal_line);
+        }
+        end1 = with_no_space.find(")");
+        string internal_line = with_no_space.substr(start1+1,(end1-(start1+1)));
+        int no_ops = get_num_ops_matrices(internal_line,c);
+        internal_line = excute_matrices_ops(internal_line,no_ops,c, array_matrices , array_chars);
+        with_no_space.replace(start1,(end1+1)-start1,internal_line);
+    }
+    //int len = with_no_space.length();
+    int no_operations = get_num_ops_matrices(with_no_space,c);
+    with_no_space = excute_matrices_ops(with_no_space,no_operations,c, array_matrices , array_chars);
+    string result;
+    result = array_matrices[get_index(array_chars,*((const char*)with_no_space.substr(1,1).c_str()))].getString() ;
+    return result;
+}
+// to count no_operations on matrices in one line
+int get_num_ops_matrices (string line , string operations [])
+{
+    int len = line.length();
+    int no_operations = 0;
+    for(int i=1;i<len;i++)
+    {
+        for(int j=0;j<7;j++)
+        {
+            if(line.find(".^",i)==i||line.find("./",i)==i)
+            {
+                if(line.substr(i,2)== operations[j])
+                {
+                    no_operations++;
+                    i++;
+                    break;
+                }
+            }
+            else if(line.substr(i,1)== operations[j])
+            {
+                no_operations++;
+                break;
+            }
+        }
+    }
+    return no_operations;
+}
+//handling operation and excuting them like in math
+string excute_matrices_ops(string line , int no_operations , string * operations , CMatrix* array_matrices , char* array_chars)
+{
+        while(no_operations>0)
+    {
+            for(int h=0;h<7;h++)
+                {
+                    for(int i=1;i<line.length();i++)
+                        {
+                            if(line.find(".^",i)==i||line.find("./",i)==i)
+                                {
+                                    if(line.substr(i,2)== operations[h])
+                                    {
+                                        i++;
+                                        line = excute_matrix(line,line.substr(i,1),i,array_matrices,array_chars);
+                                        no_operations--;
+                                    }
+                                }
+                            else if(line.substr(i,1)== operations[h])
+                                {
+                                    line = excute_matrix(line,line.substr(i,1),i,array_matrices,array_chars);
+                                    no_operations--;
+                                }
+                        }
+                }
+    }
+        return line ;
+}
+//test case of operations
+string excute_matrix (string line , string op , int pos , CMatrix* array_matrices , char* array_chars )
+{
+   int pos_begin_op,pos_end_op;
+    for(int i=pos-1;i>=0;i--)
+    {
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-")||i==0)
+        {
+            pos_begin_op = i+1;
+            break;
+        }
+    }
+    for(int i=pos+1;i<line.length();i++)
+    {
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="."||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-")||i==line.length()-1)
+        {
+            pos_end_op = i-1;
+            break;
+        }
+    }
+    string rep ;
+    if(op=="^")
+    {
+    char first_operand = line[pos_begin_op];
+    double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }else if(op==".^")
+    {
+    char first_operand = line[pos_begin_op];
+    double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }else if(op=="/")
+    {
+    char first_operand = line[pos_begin_op];
+    char second_operand = line[pos_end_op];
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }else if(op=="./")
+    {
+    if(line.substr(pos_begin_op,1).length()==1&&(line[pos_begin_op]>='A'||line[pos_begin_op]<='Z'||line[pos_begin_op]>='a'||line[pos_begin_op]<='z'))
+    {
+    char first_operand = line[pos_begin_op];
+    double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }
+    if(line.substr(pos_end_op,1).length()==1&&(line[pos_end_op]>='A'||line[pos_end_op]<='Z'||line[pos_end_op]>='a'||line[pos_end_op]<='z'))
+    {
+    char second_operand = line[pos_end_op];
+    double d1 = atof(line.substr(pos_begin_op,pos-pos_begin_op).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,second_operand, op , char(out+my_count) , 0 , d1 , 0) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }
+    }else if(op=="*")
+    {
+    char first_operand = line[pos_begin_op];
+    char second_operand = line[pos_end_op];
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }else if(op=="+")
+    {
+    char first_operand = line[pos_begin_op];
+    char second_operand = line[pos_end_op];
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }else if(op==".+")
+    {
+    char first_operand = line[pos_begin_op];
+    double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }else if(op=="-")
+    {
+    char first_operand = line[pos_begin_op];
+    char second_operand = line[pos_end_op];
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
+    }
+my_count++;
+return line ;
+}
+//to take line like that " 5.5 + 12 * sin(0.4) + 2.2^4 " and get it's output
+double do_operation_line (string line)
+{
+    string with_no_space;
+    string seperators = " ";
+    for(int o=0;o<line.length();o++)
+    {
+        if(line.substr(o,1)==seperators)
+            line.erase(o,1);
+    }
+    with_no_space = line;
+    string c ="^/*+-";
+    while(with_no_space.find("sin")!=-1)
+    {
+        int end1 = with_no_space.find(")",with_no_space.find("sin"));
+        double val = atof(with_no_space.substr(with_no_space.find("sin")+4,end1-with_no_space.find("sin")+4).c_str());
+        double res = sin(val);
+        int start = with_no_space.find("sin");
+        with_no_space.replace (start,(end1+1-start),to_string(res));
+    }
+    while(with_no_space.find("(")!=-1&&with_no_space.find(")")!=-1)
+    {
+        int start1 = with_no_space.find("(");
+        int end1 = with_no_space.find(")");
+        while(with_no_space.find("(",start1+1)!=-1)
+        {
+        int start2 = with_no_space.find("(",start1+1);
+        int end2 = with_no_space.find(")",start2+1);
+        if(end2>end1)
+            break;
+        string internal_line = with_no_space.substr(start2+1,(end2-(start2+1)));
+        int no_ops = get_num_ops(internal_line,c);
+        internal_line = handle_excute(internal_line,c,no_ops);
+        with_no_space.replace(start2,(end2+1)-start2,internal_line);
+        }
+        end1 = with_no_space.find(")");
+        string internal_line = with_no_space.substr(start1+1,(end1-(start1+1)));
+        int no_ops = get_num_ops(internal_line,c);
+        internal_line = handle_excute(internal_line,c,no_ops);
+        with_no_space.replace(start1,(end1+1)-start1,internal_line);
+    }
+    int len = with_no_space.length();
+    int no_operations = get_num_ops(with_no_space,c);
+    with_no_space = handle_excute(with_no_space,c,no_operations);
+    double result;
+    result = atof(with_no_space.c_str());
+    return result;
+}
+//to get no of operations
+int get_num_ops (string line , string operations)
+{
+    int len = line.length();
+    int no_operations = 0;
+    for(int i=1;i<len;i++)
+    {
+        for(int j=0;j<5;j++)
+        {
+            if(line.substr(i,1)== operations.substr(j,1))
+            {
+                no_operations++;
+                break;
+            }
+        }
+    }
+    return no_operations;
+}
+//to get operation excuted as arranged in math
+string handle_excute (string line , string operations ,int no_operations)
+{
+    while(no_operations>0)
+    {
+            for(int h=0;h<5;h++)
+                {
+                    for(int i=1;i<line.length();i++)
+                        {
+                            if(line.substr(i,1)== operations.substr(h,1))
+                            {
+                                line = excute(line,line.substr(i,1),i);
+                                no_operations--;
+                            }
+                        }
+                }
+    }
+        return line ;
+}
+//excuting operation and replacing this operation with it's value in string "line".
+string excute (string line , string operation , int position_operation)
+{
+    int pos_begin_op,pos_end_op;
+    for(int i=position_operation-1;i>=0;i--)
+    {
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-")||i==0)
+        {
+            pos_begin_op = i+1;
+            if(i==0||line.substr(i,1)=="-")
+               pos_begin_op = i;
+            break;
+        }
+    }
+    for(int i=position_operation+1;i<line.length();i++)
+    {
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-")||i==line.length()-1)
+        {
+            pos_end_op = i-1;
+            if(i==line.length()-1)
+                pos_end_op = i;
+            break;
+        }
+    }
+    double first_operand , second_operand , result;
+    string change ;
+    first_operand = atof(line.substr(pos_begin_op,position_operation-pos_begin_op).c_str());
+    second_operand = atof(line.substr(position_operation+1,(pos_end_op+1)-(position_operation+1)).c_str());
+    if(operation=="^")
+    {
+    result = pow(first_operand,second_operand);
+    change = to_string(result);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,change);
+    }else if(operation=="/")
+    {
+    result = first_operand/second_operand;
+    change = to_string(result);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,change);
+    }else if(operation=="*")
+    {
+    result = first_operand*second_operand;
+    change = to_string(result);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,change);
+    }else if(operation=="+")
+    {
+    result = first_operand+second_operand;
+    change = to_string(result);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,change);
+    }else if(operation=="-")
+    {
+    result = first_operand-second_operand;
+    change = to_string(result);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,change);
+    }
+    return line;
+}
 /*
 #include <iostream>
 #include "CMatrix.h"
@@ -279,7 +788,7 @@ return w;
 int main()
 {
     CMatrix A ;
-    A = "[1.2 3.4 5.6 7.8 1.0 3.2 2.1 2.3 1.4 2.6 2.7 2.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 3.7 1.2 3.4 5.6 7.8 9.0 1.2 2.1 2.3 2.4 1.6; 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4; 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 7.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 4.1 2.3; 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 1.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1; 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2; 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 17.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0; 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8; 9.0 2.2 2.1 2.3 2.4 1.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 2.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6; 7.4 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4; 5.6 7.8 9.0 2.2 4.4 2.3 2.4 2.6 2.7 1.2 3.4 5.6 2.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2; 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 1.8 9.0 1.2 2.1 2.3 2.4 8.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7; 1.2 3.4 5.6 7.8 9.0 2.2 5.1 4.3 12.4 2.6 2.7 1.2 3.4 5.6 97.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 3.4 2.6; 2.7 1.2 3.4 5.6 7.5 9.0 2.2 2.1 3.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 5.1 2.3 2.4 5.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4; 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 8.2 2.1 2.3; 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 6.6 2.7 1.2 3.4 5.6 2.8 9.0 1.2 2.1; 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 5.1 2.3 2.4 0.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 0.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2; 0.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0; 4.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 5.2 2.1 2.3 2.4 9.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8; 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 5.3 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.3; 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 3.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 3.4 2.6 3.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 8.4 2.6 2.7 1.2 3.4; 5.6 7.8 9.0 2.2 2.1 2.3 3.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 1.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2; 3.4 1.6 7.8 9.0 2.2 3.1 6.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7; 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 4.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 1.6; 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 1.4 2.6 2.7 1.2 3.4 9.6 7.8 9.0 2.2 2.1 2.3 2.4; 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 1.4 2.6 2.7 2.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3; 2.4 2.6 2.7 1.2 3.4 5.6 7.8 1.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 8.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 2.6 7.8 9.0 2.2 2.1; 7.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 3.6 1.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2; 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 7.2 3.4 5.6 7.8 9.0; 2.2 2.1 2.3 2.4 2.6 7.7 9.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.9 2.4 2.6 2.7 1.2 3.4 5.6 7.8; 9.0 2.2 2.1 2.3 2.4 2.6 7.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6; 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4; 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 5.7 9.3 3.4 5.6 3.8 9.0 2.2 5.1 2.3 2.4 2.6 2.7 1.2];";
+    //A = "[1.2 3.4 5.6 7.8 1.0 3.2 2.1 2.3 1.4 2.6 2.7 2.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 3.7 1.2 3.4 5.6 7.8 9.0 1.2 2.1 2.3 2.4 1.6; 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4; 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 7.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 4.1 2.3; 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 1.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1; 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2; 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 17.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0; 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8; 9.0 2.2 2.1 2.3 2.4 1.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 2.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6; 7.4 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4; 5.6 7.8 9.0 2.2 4.4 2.3 2.4 2.6 2.7 1.2 3.4 5.6 2.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2; 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 1.8 9.0 1.2 2.1 2.3 2.4 8.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7; 1.2 3.4 5.6 7.8 9.0 2.2 5.1 4.3 12.4 2.6 2.7 1.2 3.4 5.6 97.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 3.4 2.6; 2.7 1.2 3.4 5.6 7.5 9.0 2.2 2.1 3.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 5.1 2.3 2.4 5.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4; 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 8.2 2.1 2.3; 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 6.6 2.7 1.2 3.4 5.6 2.8 9.0 1.2 2.1; 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 5.1 2.3 2.4 0.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 0.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2; 0.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0; 4.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 5.2 2.1 2.3 2.4 9.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8; 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 5.3 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.3; 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 3.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 3.4 2.6 3.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 8.4 2.6 2.7 1.2 3.4; 5.6 7.8 9.0 2.2 2.1 2.3 3.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 1.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2; 3.4 1.6 7.8 9.0 2.2 3.1 6.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7; 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 4.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 1.6; 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 1.4 2.6 2.7 1.2 3.4 9.6 7.8 9.0 2.2 2.1 2.3 2.4; 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 1.4 2.6 2.7 2.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3; 2.4 2.6 2.7 1.2 3.4 5.6 7.8 1.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 8.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 2.6 7.8 9.0 2.2 2.1; 7.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 3.6 1.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2; 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 7.2 3.4 5.6 7.8 9.0; 2.2 2.1 2.3 2.4 2.6 7.7 9.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.9 2.4 2.6 2.7 1.2 3.4 5.6 7.8; 9.0 2.2 2.1 2.3 2.4 2.6 7.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6; 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4; 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 2.7 1.2 3.4 5.6 7.8 9.0 2.2 2.1 2.3 2.4 2.6 5.7 9.3 3.4 5.6 3.8 9.0 2.2 5.1 2.3 2.4 2.6 2.7 1.2];";
    // cout<<A.FastestDeterminant()<<endl;
     //CMatrix B ;
    // A="[1 -1 0 2; 2 1 0 0; 1 1 2 2; 0 0 1 1];";
@@ -287,16 +796,18 @@ int main()
     //cout<<"\n"<<B;
     //CMatrix C=A+B;
     //cout<<"\n"<<C;
-    C=A-B;
-    cout<<"\n"<<C;
-    C=A*B;
-    cout<<"\n"<<C;
-    C=A/B;
-    cout<<A.FastestDeterminant()<<endl;
-    cout<<eye(4,4);
-    cout<<rand(4,4);
-    cout<<ones(4,4);
-    cout<<zeros(4,4);
+    //C=A-B;
+    //cout<<"\n"<<C;
+    //C=A*B;
+    //cout<<"\n"<<C;
+    //C=A/B;
+    //cout<<A.FastestDeterminant()<<endl;
+    cout<<eye(4,4)<<"\n";
+    cout<<rand(4,4)<<"\n";
+    cout<<ones(4,4)<<"\n";
+    cout<<zeros(4,4)<<"\n";
+    A=ones(3,6);
+    cout<<A.sin_matrix()<<"\n";
     return 0;
 }
 istream& operator >> (istream &is, CMatrix& m)
@@ -313,7 +824,7 @@ ostream& operator << (ostream &os, CMatrix& m)
 	os << m.getString();
 	return os;
 }
-string handling_operations(string s)
+/*string handling_operations(string s)
 {
     string temp;
     while(s.length()==0)
