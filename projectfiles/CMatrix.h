@@ -72,9 +72,11 @@ public:
 	friend CMatrix& rand(int nr,int nc);
 	friend CMatrix& zeros(int nr,int nc);
 	friend CMatrix& ones(int nr,int nc);
-	CMatrix &power_matrix(CMatrix &matrix, int number);
-	CMatrix &sqrt_matrix(CMatrix &matrix);
-	float getTrace(CMatrix &mat);
-	CMatrix &unityMatrix(int num);
+	friend CMatrix & power_by_element (CMatrix& l , double pow);
+	CMatrix& sin_matrix();
+	friend CMatrix &power_matrix(CMatrix &matrix, int number);
+	friend CMatrix &sqrt_matrix(CMatrix &matrix);
+	friend float getTrace(CMatrix &mat);
+	friend CMatrix &unityMatrix(int num);
 	};
 #endif // CMATRIX_H

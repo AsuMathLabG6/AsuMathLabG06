@@ -526,45 +526,18 @@ for(int i=0;i<nR;i++)
 value*=d.values[i][i];
 return value;
 }
-/*It multplies the matrix by itself n times
-where n is the power of the matrix*/
-CMatrix &CMatrix::power_matrix(CMatrix &matrix, int number)
+CMatrix& CMatrix :: sin_matrix()
 {
-	if (number <= 0)
-		throw("Power must be positive Integer");
-	if (number == 1)
-		return matrix;
-	else
-	{
-		return matrix * power_matrix(matrix, number - 1);
-	}
-}
-/* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
-CMatrix &CMatrix::sqrt_matrix(CMatrix &matrix)
-{
-	if (matrix.nC != matrix.nR)
-		throw("Matrix must be square matrix (of equal dimensions)");
-	double taw = getTrace(matrix), dtrm = matrix.getDeterminant();
-	double s = sqrt(dtrm);
-	float t = sqrt(2 * s + taw);
-	return (matrix + (unityMatrix(matrix.nR) * s)) * (1.0 / t);
+    static CMatrix sinmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            sinmat.values[i][j]=sin(element);
+        }
+    }
+    return sinmat;
 }
 
-float CMatrix::getTrace(CMatrix &mat)
-{
-	float temp = 0;
-	for (int i = 0; i < nR; i++)
-	{
-		temp += mat.values[i][i];
-	}
-	return temp;
-}
-CMatrix &CMatrix::unityMatrix(int num)
-{
-	static CMatrix temp(num, num, 0);
-	for (int i = 0; i < num; i++)
-	{
-		temp.values[i][i] = 1.0;
-	}
-	return temp;
-}
