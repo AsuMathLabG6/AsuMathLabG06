@@ -65,7 +65,7 @@ CMatrix::CMatrix(string s)
 }
 void CMatrix::copy(CMatrix& m)
 {
-	reset();
+	//reset();
 	this->nR = m.nR;
 	this->nC = m.nC;
 	if ((nR*nC) == 0){ values = NULL; return; }
@@ -87,7 +87,7 @@ CMatrix::CMatrix(double d)
 }
 void CMatrix::copy(double d)
 {
-	reset();
+//	reset();
 	this->nR = 1;
 	this->nC = 1;
 	values = new double*[1];
@@ -540,4 +540,18 @@ CMatrix& CMatrix :: sin_matrix()
     }
     return sinmat;
 }
-
+double CMatrix::get_values (int r , int c)
+{
+    double value ;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            if(i==r&&j==c)
+            {
+                value = this->values[i][j];
+            }
+        }
+    }
+    return value;
+}

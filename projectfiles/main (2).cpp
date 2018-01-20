@@ -37,135 +37,173 @@ CMatrix temp(nr,nc,1);
 w=temp;
 return w;
 }
+CMatrix init ;
 int num_elements = 0;
 char out = 'a';
 int my_count = 0;
 bool is_found(char c, char*  array_chars);
-void reserve(CMatrix* array_matrices, string x);
+void reserve(CMatrix* array_matrices, string x , int type =0 , CMatrix& c = init);
 void insert_name(char* array_chars, char y);
 int get_index(char * array_chars, char operand_name);
 string operationg(CMatrix* array_matrices, char* array_chars,char first_operand, string operation, char output,char second_operand,double d1=0,double d2=0);
 void check_print (string output, bool is_semicolon);
+string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars);
+string do_operation_matrices (string line , CMatrix* array_matrices , char* array_chars ) ;
 double do_operation_line (string line);
 int get_num_ops (string line , string operations);
 string excute (string line , string operation , int position_operation);
 string handle_excute (string line , string operations ,int no_operations);
 int get_num_ops_matrices (string line , string operations []);
 string excute_matrices_ops(string line , int no_operations , string * operations , CMatrix* array_matrices , char* array_chars);
-
 string excute_matrix (string line , string op , int pos , CMatrix* array_matrices , char* array_chars );
+char trim(string text);
+bool is_end(char* text);
+void trim (string text , int  type, int& nr ,int& nc );
 int main(int argc, char* argv[])
 {
 char array_chars [size];
-CMatrix array_matrices [size] ;
-/*
+CMatrix* array_matrices = new CMatrix [size] ;
+
 //if (argc == 2)
 //{
 //argv[1]
-ifstream infile("/home/mido/Downloads/bigexample.m");
+ifstream infile("/home/mido/Downloads/advexample.m");
 if (!infile.bad())
 {
-	string get_input;
-	string body_matrix;
-	bool start_package,end_package,is_semicolon=false,start_operation=false;
-	int end;
- 	char c;
-	while(getline(infile,get_input))
-		{
-	is_semicolon=false;
-	int length=get_input.length();
-	if(get_input=="\r"||get_input=="")
-	{
-        continue;
+   string get_input , body_matrix , body_math , output ;
+   bool open_bracket = false , close_bracket = false , is_semicolon;
+   char c;
+   int length ;
+   while(getline(infile,get_input))
+   {
+    char* text1 = new char [get_input.length()+1] ;
+    strcpy(text1,get_input.c_str());
+    if(is_end(text1))
+    {
+        length = get_input.length();
+        open_bracket = (get_input.find("[",0)== -1 ) ? false : true ;
+        close_bracket = (get_input.find("]",0)== -1 ) ? false : true ;
+        if(!open_bracket&&!close_bracket)
+        {
+            int index = get_input.find("=",0);
+            is_semicolon = (get_input.find(";",0)==-1)? false : true ;
+            if(index!=-1)
+            {
+            c = trim (get_input.substr(0,index));
+            insert_name(array_chars, c );
+            if(get_input.find("rand",index+1)!=-1||get_input.find("eye",index+1)!=-1||get_input.find("zeros",index+1)!=-1||get_input.find("ones",index+1)!=-1)
+            {
+                string str2 = get_input.substr(index+1,(length-1)-(index+1));
+                int nr , nc ;
+                if(get_input.find("rand",index+1)!=-1)
+                {
+                        trim (str2,1, nr ,nc );
+                        reserve(array_matrices,str2,1,rand(nr,nc));
+                }else if(get_input.find("eye",index+1)!=-1)
+                {
+                        trim (str2,2, nr ,nc );
+                        reserve(array_matrices,str2,1,eye(nr,nc));
+                }else if(get_input.find("zeros",index+1)!=-1)
+                {
+                        trim (str2,3, nr ,nc );
+                        reserve(array_matrices,str2,1,zeros(nr,nc));
+                }else if(get_input.find("ones",index+1)!=-1)
+                {
+                        trim (str2,4, nr ,nc );
+                        reserve(array_matrices,str2,1,ones(nr,nc));
+                }
+                int i = get_index(array_chars,c) ;
+                output = array_matrices[i].getString();
+                char text2[3];
+                sprintf(text2,"%c=\n\n",array_chars[i]);
+                check_print (string(text2)+output, is_semicolon);
+            }else
+            {
+            if(!is_semicolon)
+            {
+                string str1 ;
+                str1 = get_input.substr(index+1,(length-1)-index) ;
+                double d = atof(choose_type_operation (str1 , array_matrices , array_chars).c_str());
+                CMatrix C(1,1,4,d);
+                reserve(array_matrices, str1 , 1 ,C);
+            }
+            else
+            {
+                string str1 ;
+                str1 = get_input.substr(index+1,(get_input.find(";",0)-1)-index) ;
+                double d = atof(choose_type_operation (str1 , array_matrices , array_chars).c_str());
+                CMatrix C(1,1,4,d);
+                reserve(array_matrices, get_input.substr(index+1,(length-1)-index) , 1 ,C);
+            }
+            int i = get_index(array_chars,c) ;
+            output = array_matrices[i].getString();
+            char text2[3];
+            sprintf(text2,"%c=\n\n",array_chars[i]);
+            check_print (string(text2)+" "+output, is_semicolon);
+            }
+            }else
+            {
+                c = trim(get_input);
+                int i = get_index(array_chars,c) ;
+                output = array_matrices[i].getString();
+                char text2[3];
+                sprintf(text2,"%c=\n\n",array_chars[i]);
+                check_print (string(text2)+" "+output, is_semicolon);
+            }
+        }
     }
-	end=get_input.find("]");
-	if(get_input.find("[")!=-1)
-		start_package=true;
-    else
-        start_package=false;
-	if(get_input.find("]")!=-1)
-	{
-		end_package=true;
-	}else{
-		end_package=false;
-		}
-	if(start_package)
-	{
-        c=*((const char*)get_input.substr(0,1).c_str());
-		insert_name(array_chars,c);
-	}
-	if(end_package&&start_package)
-	{
-		body_matrix=get_input.substr(4,end-3);
-		reserve(array_matrices, body_matrix);
-		body_matrix.clear();
-		if(get_input.substr(end+1,1)==";")
-			is_semicolon=true;
-		if(!is_semicolon)
-		{
-			cout<<array_matrices[get_index(array_chars,c)].getString()<<endl;
-		}
-	}
-	if(end_package&&!start_package)
-	{
-		body_matrix+=get_input.substr(0,end+1);
-		reserve(array_matrices, body_matrix);
-		body_matrix.clear();
-		if(get_input.substr(end+1,1)==";")
-			is_semicolon=true;
-		if(!is_semicolon)
-		{
-			cout<<array_matrices[get_index(array_chars,c)].getString();
-		}
-	}
-	if(!end_package&&!start_package&&get_input.find("=")!=-1)
-		{
-		start_operation = true;
-		string req;
-		char* g = (char*)get_input.c_str();
-		char* spearators = " ";
-		char* temp = strtok(g,spearators);
-		while(temp)
-		{
-            req += string(temp);
-            temp = strtok(NULL,spearators);
-		}
-		get_input = req;
-		c=*((const char*)get_input.substr(0,1).c_str());
-		insert_name(array_chars, c);
-		if(get_input.find("'")!=-1)
-		{
-		if(get_input.find(";")==4)
-			is_semicolon=true;
-		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(2,1).c_str()),get_input.substr(3,1),c,0,0),is_semicolon);
-		}else if(get_input.find(".")==-1)
-		{
-		if(get_input.find(";")!=-1)
-			is_semicolon=true;
-		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(2,1).c_str()),get_input.substr(3,1),c,*((const char*)get_input.substr(4,1).c_str())),is_semicolon);
-		}else if((*((const char*)get_input.substr(2,1).c_str())>='A'||*((const char*)get_input.substr(2,1).c_str())<='Z')&&(*((const char*)get_input.substr(5,1).c_str())>='A'||*((const char*)get_input.substr(5,1).c_str()))&&get_input.substr(3,1)==".")
-		{
-		if(get_input.find(";")!=-1)
-			is_semicolon=true;
-		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(5,1).c_str()),get_input.substr(3,2),c,0,atof(get_input.substr(2,1).c_str())),is_semicolon);
-		}
-		}
-		if (((!end_package&&start_package)||(!end_package&&!start_package))&&(!start_operation))
-	{
-	//&&get_input.substr(length-1,1)=="\n"
-		if(get_input.substr(length-1,1)=="\r")
-		{
-            if(start_package)
-			body_matrix+=get_input.substr(4,length-5);
-			else
-			body_matrix+=get_input.substr(0,length-1);
-		}
-	}
-	}
+    delete []text1;
+}
+}
 infile.close();
-}else
-cout<<"File read failed."<<endl;*/
+//}else
+//cout<<"File read failed."<<endl;
 return 0;
+}
+bool is_end(char* text)
+{
+    bool found_exp = false ;
+    for(int i=0;i<strlen(text);i++)
+    {
+        char c = text[i] ;
+       if(c =='='||((c >='A'&&c <='Z')||(c >='a'&&c <='z')))
+            found_exp = true;
+    }
+    return found_exp;
+}
+char trim(string text)
+{
+    for(int i=0;i<text.length();i++)
+        {
+            if(text.substr(i,1)!=" ")
+                return text[i] ;
+        }
+}
+void trim (string text , int  type, int& nr ,int& nc )
+{
+    for(int i=0;i<text.length();i++)
+        {
+            if(text.substr(i,1)==" ")
+                text.erase(i,1);
+        }
+        switch(type)
+        {
+            case 1 : nr = atof(text.substr(5,1).c_str());
+                     nc = atof(text.substr(7,1).c_str());
+                     break ;
+            case 2 : nr = atof(text.substr(4,1).c_str());
+                     nc = atof(text.substr(6,1).c_str());
+                     break ;
+            case 3 : nr = atof(text.substr(6,1).c_str());
+                     nc = atof(text.substr(8,1).c_str());
+                     break ;
+            case 4 : nr = atof(text.substr(5,1).c_str());
+                     nc = atof(text.substr(7,1).c_str());
+                     break ;
+            default : nr = 0 ;
+                      nc = 0 ;
+                      break ;
+        }
 }
 istream& operator >> (istream &is, CMatrix& m)
 {
@@ -192,9 +230,12 @@ bool is_found(char c, char*  array_chars)
 	return true;
 }
 //give this function body of matrix [2 1, 4 5]
-void reserve(CMatrix* array_matrices, string x)
+void reserve(CMatrix* array_matrices, string x , int type , CMatrix& c )
 {
+        if(type==0)
 		array_matrices[num_elements-1] = x;
+		else if(type==1)
+		array_matrices[num_elements-1]=c;
 		//cout<<array_matrices[num_elements-1];
 }
 // reserve char in array which is the name of matrices
@@ -352,6 +393,30 @@ float getTrace(CMatrix &mat)
 		temp += mat.values[i][i];
 	}
 	return temp;
+}
+// choose_type_operation is it on matrices or on numbers to handle if the operation will be done on matrices or on numbers and handle case 1x1 matrix
+string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars)
+{
+    string result ;
+    int flag1=0 , flag2=0 ;
+    for(int i=0 ; i<line.length() ;i++)
+    {
+    if(line[i]>='A'||line[i]<='Z')
+        {
+           if(array_matrices[get_index(array_chars,line[i])].getnC()==1&&array_matrices[get_index(array_chars,line[i])].getnR()==1)
+           {
+                line.replace(i,1,to_string(array_matrices[get_index(array_chars,line[i])].get_values(0,0)));
+                flag1 = 1 ;
+           }
+           else
+            flag2 = 1;
+        }
+    }
+    if(!flag1&&flag2||!flag1&&!flag2)
+        result = to_string(do_operation_line (line));
+    else if(flag1&&!flag2||flag1&&flag2)
+        result = do_operation_matrices (line , array_matrices , array_chars );
+    return result ;
 }
 //operations on matrices and get out matrix of the operation
 string do_operation_matrices (string line , CMatrix* array_matrices , char* array_chars )
@@ -850,3 +915,99 @@ string do_operation(string x)
 }
 */
 
+/*	string get_input;
+	string body_matrix;
+	bool start_package,end_package,is_semicolon=false,start_operation=false;
+	int end;
+ 	char c;
+	while(getline(infile,get_input))
+		{
+	is_semicolon=false;
+	int length=get_input.length();
+	if(get_input=="\r"||get_input=="")
+	{
+        continue;
+    }
+	end=get_input.find("]");
+	if(get_input.find("[")!=-1)
+		start_package=true;
+    else
+        start_package=false;
+	if(get_input.find("]")!=-1)
+	{
+		end_package=true;
+	}else{
+		end_package=false;
+		}
+	if(start_package)
+	{
+        c=*((const char*)get_input.substr(0,1).c_str());
+		insert_name(array_chars,c);
+	}
+	if(end_package&&start_package)
+	{
+		body_matrix=get_input.substr(4,end-3);
+		reserve(array_matrices, body_matrix);
+		body_matrix.clear();
+		if(get_input.substr(end+1,1)==";")
+			is_semicolon=true;
+		if(!is_semicolon)
+		{
+			cout<<array_matrices[get_index(array_chars,c)].getString()<<endl;
+		}
+	}
+	if(end_package&&!start_package)
+	{
+		body_matrix+=get_input.substr(0,end+1);
+		reserve(array_matrices, body_matrix);
+		body_matrix.clear();
+		if(get_input.substr(end+1,1)==";")
+			is_semicolon=true;
+		if(!is_semicolon)
+		{
+			cout<<array_matrices[get_index(array_chars,c)].getString();
+		}
+	}
+	if(!end_package&&!start_package&&get_input.find("=")!=-1)
+		{
+		start_operation = true;
+		string req;
+		char* g = (char*)get_input.c_str();
+		char* spearators = " ";
+		char* temp = strtok(g,spearators);
+		while(temp)
+		{
+            req += string(temp);
+            temp = strtok(NULL,spearators);
+		}
+		get_input = req;
+		c=*((const char*)get_input.substr(0,1).c_str());
+		insert_name(array_chars, c);
+		if(get_input.find("'")!=-1)
+		{
+		if(get_input.find(";")==4)
+			is_semicolon=true;
+		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(2,1).c_str()),get_input.substr(3,1),c,0,0),is_semicolon);
+		}else if(get_input.find(".")==-1)
+		{
+		if(get_input.find(";")!=-1)
+			is_semicolon=true;
+		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(2,1).c_str()),get_input.substr(3,1),c,*((const char*)get_input.substr(4,1).c_str())),is_semicolon);
+		}else if((*((const char*)get_input.substr(2,1).c_str())>='A'||*((const char*)get_input.substr(2,1).c_str())<='Z')&&(*((const char*)get_input.substr(5,1).c_str())>='A'||*((const char*)get_input.substr(5,1).c_str()))&&get_input.substr(3,1)==".")
+		{
+		if(get_input.find(";")!=-1)
+			is_semicolon=true;
+		check_print(operationg(array_matrices,array_chars,num_elements,*((const char*)get_input.substr(5,1).c_str()),get_input.substr(3,2),c,0,atof(get_input.substr(2,1).c_str())),is_semicolon);
+		}
+		}
+		if (((!end_package&&start_package)||(!end_package&&!start_package))&&(!start_operation))
+	{
+	//&&get_input.substr(length-1,1)=="\n"
+		if(get_input.substr(length-1,1)=="\r")
+		{
+            if(start_package)
+			body_matrix+=get_input.substr(4,length-5);
+			else
+			body_matrix+=get_input.substr(0,length-1);
+		}
+	}*/
