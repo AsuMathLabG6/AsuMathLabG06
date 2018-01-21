@@ -17,6 +17,7 @@ void insert_name(char* array_chars, char y);
 int get_index(char * array_chars, char operand_name);
 string operationg(CMatrix* array_matrices, char* array_chars, int size_array,char first_operand, string operation, char output,char second_operand,double d=0 );
 void check_print (string output, bool is_semicolon);
+void MatricesPos(int* openmatrix, int* closematrix,string str,char x ,char y);
 int main(int argc, char* argv[])
 {
 char array_chars [size];
@@ -242,6 +243,49 @@ void check_print (string output, bool is_semicolon)
         }
     }
     return output;
+}
+
+
+void MatricesPos(int* openmatrix, int* closematrix,string str,char x ,char y){
+
+vector<int> positions; // holds all the positions that sub occurs within str
+vector<int> positions2; // holds all the positions that sub occurs within str
+
+int pos = str.find(y, 0);
+while(pos != -1)
+{
+    positions.push_back(pos);
+    pos = str.find(y,pos+1);
+}
+
+
+
+int pos2 = str.find(x, 0);
+while(pos2 != -1)
+{
+    positions2.push_back(pos2);
+    pos2 = str.find(x,pos2+1);
+}
+
+int myindex=0;
+
+
+for(unsigned int i=0;i<positions.size();i++)
+{
+    for(unsigned int y=positions2.size()-1;y>=0;y--)
+    {
+
+        if(positions.at(i)>positions2.at(y))
+        {
+            openmatrix[myindex]=positions2.at(y);
+            closematrix[myindex]=positions.at(i);
+            positions2.erase(positions2.begin()+y);
+            myindex++;
+            break;
+
+        }
+    }
+}
 }
 
 /*
