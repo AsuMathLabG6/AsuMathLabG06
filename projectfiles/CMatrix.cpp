@@ -540,6 +540,188 @@ CMatrix& CMatrix :: sin_matrix()
     }
     return sinmat;
 }
+CMatrix& CMatrix :: cos_matrix()
+{
+    static CMatrix cosmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            cosmat.values[i][j]=cos(element);
+        }
+    }
+    return cosmat;
+}
+CMatrix& CMatrix :: tan_matrix()
+{
+    static CMatrix tanmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            tanmat.values[i][j]=tan(element);
+        }
+    }
+    return tanmat;
+}
+CMatrix& CMatrix :: sec_matrix()
+{
+    static CMatrix secmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            secmat.values[i][j]=1/cos(element);
+        }
+    }
+    return secmat;
+}
+CMatrix& CMatrix :: csc_matrix()
+{
+    static CMatrix cscmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            cscmat.values[i][j]=1/sin(element);
+        }
+    }
+    return cscmat;
+}
+CMatrix& CMatrix :: cot_matrix()
+{
+    static CMatrix cotmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            cotmat.values[i][j]=1/tan(element);
+        }
+    }
+    return cotmat;
+}
+CMatrix& CMatrix :: asin_matrix()
+{
+    static CMatrix asinmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            asinmat.values[i][j]=asin(element);
+        }
+    }
+    return asinmat;
+}
+CMatrix& CMatrix :: acos_matrix()
+{
+    static CMatrix acosmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            acosmat.values[i][j]=acos(element);
+        }
+    }
+    return acosmat;
+}
+CMatrix& CMatrix :: atan_matrix()
+{
+    static CMatrix atanmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            atanmat.values[i][j]=atan(element);
+        }
+    }
+    return atanmat;
+}
+CMatrix& CMatrix :: asec_matrix()
+{
+    static CMatrix asecmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            asecmat.values[i][j]=acos(1/element);
+        }
+    }
+    return asecmat;
+}
+CMatrix& CMatrix :: acsc_matrix()
+{
+    static CMatrix acscmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            acscmat.values[i][j]=asin(1/element);
+        }
+    }
+    return acscmat;
+}
+CMatrix& CMatrix :: acot_matrix()
+{
+    static CMatrix acotmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            acotmat.values[i][j]=atan(1/element);
+        }
+    }
+    return acotmat;
+}
+CMatrix& CMatrix :: log_matrix()
+{
+    static CMatrix logmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            logmat.values[i][j]=log(element);
+        }
+    }
+    return logmat;
+}
+CMatrix& CMatrix :: exp_matrix()
+{
+    static CMatrix expmat(nR,nC);
+    double element;
+    for(int i=0;i<nR;i++)
+    {
+        for(int j=0;j<nC;j++)
+        {
+            element = this->values[i][j];
+            expmat.values[i][j]=exp(element);
+        }
+    }
+    return expmat;
+}
 double CMatrix::get_values (int r , int c)
 {
     double value ;

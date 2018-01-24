@@ -59,7 +59,10 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
 char trim(string text);
 bool is_end(char* text);
 void trim (string text , int  type, int& nr ,int& nc );
-void MatricesPos(int* openmatrix, int* closematrix,string str,char x ,char y);
+void ready(char* text,CMatrix& c ,CMatrix* array_matrices ,char* array_chars);
+void combine (string mat1,string mat2,CMatrix& c);
+CMatrix& choose_type (string case1 , int x, CMatrix* array_matrices);
+double do_this(string case1 ,double value);
 int main(int argc, char* argv[])
 {
 char array_chars [size];
@@ -71,10 +74,10 @@ CMatrix* array_matrices = new CMatrix [size] ;
 ifstream infile("/home/mido/Downloads/advexample.m");
 if (!infile.bad())
 {
-   string get_input , body_matrix , body_math , output ;
+   string get_input , body_matrix , body_math , output , concatenate ;
    bool open_bracket = false , close_bracket = false , is_semicolon;
    char c;
-   int length ;
+   int length , indicator=0 ;
    while(getline(infile,get_input))
    {
     char* text1 = new char [get_input.length()+1] ;
@@ -151,6 +154,122 @@ if (!infile.bad())
                 sprintf(text2,"%c=\n\n",array_chars[i]);
                 check_print (string(text2)+" "+output, is_semicolon);
             }
+        }else if ( (open_bracket&&close_bracket) || (open_bracket&&!close_bracket) || (!open_bracket&&!close_bracket) || (!open_bracket&&close_bracket) )
+        {
+            string s ;
+            if(!indicator)
+            {
+            int index = get_input.find("=",0);
+            is_semicolon = (get_input.find(";",0)==-1)? false : true ;
+            c = trim (get_input.substr(0,index));
+            insert_name(array_chars, c );
+            s = get_input.substr(index+1,(length-1-index));
+            }
+            int no_open_brackets = 0 , no_closed_brackets = 0 ;
+            for(int i=0;i<s.length();i++)
+            {
+                if(s.substr(i,1)=="[")
+                    no_open_brackets++;
+                else if(s.substr(i,1)=="]")
+                    no_closed_brackets++;
+            }
+            if(no_open_brackets==1&&no_closed_brackets==1)
+            {
+                reserve(array_matrices, s );
+                if(!is_semicolon)
+            {
+                string str3 ;
+                int i = get_index(array_chars,c) ;
+                str3 = array_matrices[i].getString();
+                char text2[3];
+                sprintf(text2,"%c=\n\n",array_chars[i]);
+                check_print (string(text2)+" "+output, is_semicolon);
+            }
+            }else if(no_open_brackets&&!no_closed_brackets)
+            {
+                if(!indicator)
+                {
+                    concatenate += s;
+                    indicator = 1;
+                }
+
+             }else if(!no_open_brackets&&!no_closed_brackets)
+             {
+                if(indicator)
+                        concatenate += get_input;
+
+             }else if(!no_open_brackets&&no_closed_brackets)
+             {
+                if(indicator)
+                    {
+                        concatenate += get_input;
+                        indicator = 0 ;
+                        reserve(array_matrices, concatenate );
+                    if(get_input.find(";")==-1)
+                    {
+                        string str3 ;
+                        int i = get_index(array_chars,c) ;
+                        str3 = array_matrices[i].getString();
+                        char text2[3];
+                        sprintf(text2,"%c=\n\n",array_chars[i]);
+                        check_print (string(text2)+" "+output, bool(get_input.find(";")==-1));
+                    }
+                    concatenate.clear();
+                    }
+             }else if(no_open_brackets>1&&no_closed_brackets>1&&no_open_brackets==no_closed_brackets)
+             {
+              s.erase(0,s.find("[")+1);
+              s.erase(s.rfind("]"),s.length()-s.rfind("]"));
+              int intially=0 , finally=0 ;
+              int care = 0 ;
+              string parsing ;
+              string combine_part1 , combine_part2 ;
+              int sum = 0 ;
+              CMatrix m;
+              for(int i=0;i<s.length();i++)
+              {
+                if(s.substr(i,1)==";"&&!care)
+                {
+                  finally=i;
+                  parsing = s.substr(intially,finally-intially);
+                  char trans [parsing.length()+1];
+                  strcpy(trans,parsing.c_str());
+                  ready(trans,m,array_matrices,array_chars);
+                  intially = finally+1;
+                }else if(s.substr(i,1)=="[")
+                    care = 1;
+                 else if(s.substr(i,1)=="]"&&!sum)
+                    care = 0;
+                 else if(s.substr(i,1)==","||(sum&&s.substr(i,1)=="]"))
+                 {
+                    if(!sum)
+                    {
+                    finally = i ;
+                    combine_part1 = s.substr(intially,finally-intially);
+                    sum++;
+                    intially = i+1;
+                    }else
+                    {
+                    finally = i+1;
+                    combine_part2 = s.substr(intially,finally-intially);
+                    combine(combine_part1,combine_part2,m);
+                    intially = finally+1;
+                    combine_part1.clear();
+                    combine_part2.clear();
+                    }
+                 }
+              }
+             reserve(array_matrices,s,1,m);
+                if(!is_semicolon)
+             {
+                string str3 ;
+                int i = get_index(array_chars,c) ;
+                str3 = array_matrices[i].getString();
+                char text2[3];
+                sprintf(text2,"%c=\n\n",array_chars[i]);
+                check_print (string(text2)+" "+output, is_semicolon);
+             }
+        }
         }
     }
     delete []text1;
@@ -167,7 +286,7 @@ bool is_end(char* text)
     for(int i=0;i<strlen(text);i++)
     {
         char c = text[i] ;
-       if(c =='='||((c >='A'&&c <='Z')||(c >='a'&&c <='z')))
+       if(c =='='||((c >='A'&&c <='Z')||(c >='a'&&c <='z'))|| c=='['||c==']'||c==','||c==';'||c>='0'||c<='9')
             found_exp = true;
     }
     return found_exp;
@@ -309,6 +428,16 @@ string operationg(CMatrix* array_matrices, char* array_chars,char first_operand,
         array_matrices[index_first_operand]+=d2;
 		array_matrices[index_output] = array_matrices[index_first_operand];
 		required = array_matrices[index_output].getString();
+    }else if(operation==".-")
+	{
+        array_matrices[index_first_operand]-=d2;
+		array_matrices[index_output] = array_matrices[index_first_operand];
+		required = array_matrices[index_output].getString();
+    }else if(operation==".*")
+	{
+        array_matrices[index_first_operand]*=d2;
+		array_matrices[index_output] = array_matrices[index_first_operand];
+		required = array_matrices[index_output].getString();
     }else if(operation=="^")
 	{
 		array_matrices[index_output] = power_matrix(array_matrices[index_first_operand],int(d2));
@@ -430,55 +559,31 @@ string do_operation_matrices (string line , CMatrix* array_matrices , char* arra
             line.erase(o,1);
     }
     with_no_space = line;
-    string c [7] = {"^",".^","/","./","*","+","-"};
-    while(with_no_space.find("sin")!=-1)
+    string c [10] = {"^",".^","/","./","*",".*","+",".+","-",".-"};
+    while(with_no_space.find("sin")!=-1||with_no_space.find("cos")!=-1||with_no_space.find("tan")!=-1||with_no_space.find("sec")!=-1||with_no_space.find("csc")!=-1||with_no_space.find("cot")!=-1||with_no_space.find("arcsin")!=-1||with_no_space.find("arccos")!=-1||with_no_space.find("arctan")!=-1||with_no_space.find("arcsec")!=-1||with_no_space.find("arccsc")!=-1||with_no_space.find("arccot")!=-1||with_no_space.find("sqrtm")!=-1||with_no_space.find("expm")!=-1||with_no_space.find("logm")!=-1)
     {
         CMatrix temp ;
         string rep ;
-        int end1 = with_no_space.find(")",with_no_space.find("sin"));
-        string inter = with_no_space.substr(with_no_space.find("sin")+4,end1-with_no_space.find("sin")+4);
+        int end1 , start1;
+        string case1 ;
+        case1 = (with_no_space.find("sin")!=-1)? "sin" : (with_no_space.find("cos")!=-1)? "cos" : (with_no_space.find("tan")!=-1)? "tan" : (with_no_space.find("sec")!=-1)? "sec" : (with_no_space.find("csc")!=-1)? "csc" : (with_no_space.find("cot")!=-1)? "cot" : (with_no_space.find("arcsin")!=-1)? "arctan" : (with_no_space.find("arccos")!=-1)? "arccos" : (with_no_space.find("arctan")!=-1)? "arctan" : (with_no_space.find("arcsec")!=-1)? "arcsec" : (with_no_space.find("arccsc")!=-1)? "arccsc" : (with_no_space.find("arccot")!=-1)? "arccot" : (with_no_space.find("sqrtm")!=-1)? "sqrtm" : (with_no_space.find("expm")!=-1)? "expm" : "logm" ;
+        end1 = with_no_space.find(")",with_no_space.find(case1));
+        start1 = with_no_space.find("(",with_no_space.find(case1));
+        string inter = with_no_space.substr(start1+1,end1-(start1+1));
         if(inter.length()==1&&(inter[1]>='A'||inter[1]<='Z'||inter[1]>='a'||inter[1]<='z'))
            {
             int x = get_index(array_chars,*((const char*)inter.substr(1,1).c_str())) ;
-            //temp = sqrt_matrix(array_matrices[x]) ;
-            temp = array_matrices[x].sin_matrix();
+            temp = choose_type (case1 , x , array_matrices);
            }else
            {
            string q = excute_matrices_ops(inter, get_num_ops_matrices (inter,c) , c , array_matrices , array_chars);
            int x = get_index(array_chars,*((const char*)q.substr(1,1).c_str())) ;
-            //temp = sqrt_matrix(array_matrices[x]) ;
-            temp = array_matrices[x].sin_matrix();
+           temp = choose_type (case1 , x , array_matrices);
            }
            insert_name(array_chars,char(out+my_count));
            string result = temp.getString();
            rep = char(out+my_count);
-           int start = with_no_space.find("sin");
-           with_no_space.replace(start,(end1+1-start),rep);
-           reserve(array_matrices, result);
-           my_count++;
-    }
-    while(with_no_space.find("sqrt")!=-1)
-    {
-        CMatrix temp ;
-        string rep ;
-        int end1 = with_no_space.find(")",with_no_space.find("sqrt"));
-        string inter = with_no_space.substr(with_no_space.find("sqrt")+5,end1-with_no_space.find("sqrt")+5);
-        if(inter.length()==1&&(inter[1]>='A'||inter[1]<='Z'||inter[1]>='a'||inter[1]<='z'))
-           {
-            int x = get_index(array_chars,*((const char*)inter.substr(1,1).c_str())) ;
-            temp = sqrt_matrix(array_matrices[x]) ;
-            //temp = array_matrices[x].sin_matrix();
-           }else
-           {
-           string q = excute_matrices_ops(inter, get_num_ops_matrices (inter,c) , c , array_matrices , array_chars);
-           int x = get_index(array_chars,*((const char*)q.substr(1,1).c_str())) ;
-           temp = sqrt_matrix(array_matrices[x]) ;
-            //temp = array_matrices[x].sin_matrix();
-           }
-           insert_name(array_chars,char(out+my_count));
-           string result = temp.getString();
-           rep = char(out+my_count);
-           int start = with_no_space.find("sqrt");
+           int start = with_no_space.find(case1);
            with_no_space.replace(start,(end1+1-start),rep);
            reserve(array_matrices, result);
            my_count++;
@@ -518,9 +623,9 @@ int get_num_ops_matrices (string line , string operations [])
     int no_operations = 0;
     for(int i=1;i<len;i++)
     {
-        for(int j=0;j<7;j++)
+        for(int j=0;j<10;j++)
         {
-            if(line.find(".^",i)==i||line.find("./",i)==i)
+            if(line.find(".^",i)==i||line.find("./",i)==i||line.find(".*",i)==i||line.find(".+",i)==i||line.find(".-",i)==i)
             {
                 if(line.substr(i,2)== operations[j])
                 {
@@ -543,11 +648,11 @@ string excute_matrices_ops(string line , int no_operations , string * operations
 {
         while(no_operations>0)
     {
-            for(int h=0;h<7;h++)
+            for(int h=0;h<10;h++)
                 {
                     for(int i=1;i<line.length();i++)
                         {
-                            if(line.find(".^",i)==i||line.find("./",i)==i)
+                            if(line.find(".^",i)==i||line.find("./",i)==i||line.find(".*",i)==i||line.find(".+",i)==i||line.find(".-",i)==i)
                                 {
                                     if(line.substr(i,2)== operations[h])
                                     {
@@ -645,6 +750,15 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
     reserve(array_matrices, result);
+    }else if(op==".*")
+    {
+    char first_operand = line[pos_begin_op];
+    double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
     }else if(op=="+")
     {
     char first_operand = line[pos_begin_op];
@@ -672,6 +786,15 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
     reserve(array_matrices, result);
+    }else if(op==".-")
+    {
+    char first_operand = line[pos_begin_op];
+    double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
+    insert_name(array_chars,char(out+my_count));
+    string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
+    rep = char(out+my_count);
+    line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+    reserve(array_matrices, result);
     }
 my_count++;
 return line ;
@@ -688,11 +811,15 @@ double do_operation_line (string line)
     }
     with_no_space = line;
     string c ="^/*+-";
-    while(with_no_space.find("sin")!=-1)
+    while(with_no_space.find("sin")!=-1||with_no_space.find("cos")!=-1||with_no_space.find("tan")!=-1||with_no_space.find("sec")!=-1||with_no_space.find("csc")!=-1||with_no_space.find("cot")!=-1||with_no_space.find("arcsin")!=-1||with_no_space.find("arccos")!=-1||with_no_space.find("arctan")!=-1||with_no_space.find("arcsec")!=-1||with_no_space.find("arccsc")!=-1||with_no_space.find("arccot")!=-1||with_no_space.find("sqrt")!=-1||with_no_space.find("exp")!=-1||with_no_space.find("log")!=-1)
     {
-        int end1 = with_no_space.find(")",with_no_space.find("sin"));
-        double val = atof(with_no_space.substr(with_no_space.find("sin")+4,end1-with_no_space.find("sin")+4).c_str());
-        double res = sin(val);
+        int end1 , start1;
+        string case1 ;
+        case1 = (with_no_space.find("sin")!=-1)? "sin" : (with_no_space.find("cos")!=-1)? "cos" : (with_no_space.find("tan")!=-1)? "tan" : (with_no_space.find("sec")!=-1)? "sec" : (with_no_space.find("csc")!=-1)? "csc" : (with_no_space.find("cot")!=-1)? "cot" : (with_no_space.find("arcsin")!=-1)? "arctan" : (with_no_space.find("arccos")!=-1)? "arccos" : (with_no_space.find("arctan")!=-1)? "arctan" : (with_no_space.find("arcsec")!=-1)? "arcsec" : (with_no_space.find("arccsc")!=-1)? "arccsc" : (with_no_space.find("arccot")!=-1)? "arccot" : (with_no_space.find("sqrt")!=-1)? "sqrt" : (with_no_space.find("exp")!=-1)? "exp" : "log" ;
+        end1 = with_no_space.find(")",with_no_space.find(case1));
+        start1 = with_no_space.find("(",with_no_space.find(case1));
+        double val = atof(with_no_space.substr(start1+1,end1-(start1+1)).c_str());
+        double res = do_this(case1,val);
         int start = with_no_space.find("sin");
         with_no_space.replace (start,(end1+1-start),to_string(res));
     }
@@ -817,54 +944,102 @@ string excute (string line , string operation , int position_operation)
     }
     return line;
 }
-
-
-//useful function for phase 2
-
-void MatricesPos(int* openmatrix, int* closematrix,string str,char x ,char y){
-
-vector<int> positions; // holds all the positions that sub occurs within str
-vector<int> positions2; // holds all the positions that sub occurs within str
-
-int pos = str.find(y, 0);
-while(pos != -1)
+void ready(char* text,CMatrix& c ,CMatrix* array_matrices ,char* array_chars)
 {
-    positions.push_back(pos);
-    pos = str.find(y,pos+1);
-}
-
-
-
-int pos2 = str.find(x, 0);
-while(pos2 != -1)
-{
-    positions2.push_back(pos2);
-    pos2 = str.find(x,pos2+1);
-}
-
-int myindex=0;
-
-
-for(unsigned int i=0;i<positions.size();i++)
-{
-    for(unsigned int y=positions2.size()-1;y>=0;y--)
+    char* sperators = " ;,";
+    char* token = strtok(text,sperators);
+    double v ;
+    while (token)
     {
-
-        if(positions.at(i)>positions2.at(y))
-        {
-            openmatrix[myindex]=positions2.at(y);
-            closematrix[myindex]=positions.at(i);
-            positions2.erase(positions2.begin()+y);
-            myindex++;
-            break;
-
-        }
+        string temp;
+        if((token[0]>='A'||token[0]<='Z')&&strlen(token)==1)
+            temp=to_string(array_matrices[get_index(array_chars,token[0])].get_values(0,0));
+        else if(strchr(token,'+')>0||strchr(token,'-')>0||strchr(token,'*')>0||strchr(token,'/')>0|strchr(token,'^')>0)
+            temp=to_string(do_operation_line (string(token)));
+        else
+            temp = string(token);
+        CMatrix f (atof(temp.c_str()));
+        c.addColumn(f);
+        token = strtok(NULL,sperators);
     }
 }
+void combine (string mat1,string mat2,CMatrix& c)
+{
+    CMatrix c1 (mat1);
+    CMatrix c2 (mat2);
+    c1.addColumn(c2);
+    c.addRow(c1);
 }
-
-
-
+CMatrix& choose_type (string case1 , int x , CMatrix* array_matrices)
+{
+    CMatrix temp ;
+            if(case1=="sin")
+            temp = array_matrices[x].sin_matrix();
+            else if(case1=="cos")
+            temp = array_matrices[x].cos_matrix();
+            else if(case1=="tan")
+            temp = array_matrices[x].tan_matrix();
+            else if(case1=="sec")
+            temp = array_matrices[x].sec_matrix();
+            else if(case1=="csc")
+            temp = array_matrices[x].csc_matrix();
+            else if(case1=="cot")
+            temp = array_matrices[x].cot_matrix();
+            else if(case1=="arcsin")
+            temp = array_matrices[x].asin_matrix();
+            else if(case1=="arccos")
+            temp = array_matrices[x].acos_matrix();
+            else if(case1=="arctan")
+            temp = array_matrices[x].atan_matrix();
+            else if(case1=="arcsec")
+            temp = array_matrices[x].asec_matrix();
+            else if(case1=="arccsc")
+            temp = array_matrices[x].acsc_matrix();
+            else if(case1=="arccot")
+            temp = array_matrices[x].acot_matrix();
+            else if(case1=="sqrtm")
+            temp = sqrt_matrix(array_matrices[x]);
+            else if(case1=="expm")
+            temp = array_matrices[x].exp_matrix();
+            else if(case1=="logm")
+            temp = array_matrices[x].log_matrix();
+    return temp ;
+}
+double do_this(string case1 ,double value)
+{
+    double result ;
+            if(case1=="sin")
+            result = sin(value);
+            else if(case1=="cos")
+            result = cos(value);
+            else if(case1=="tan")
+            result = tan(value);
+            else if(case1=="sec")
+            result = 1/cos(value);
+            else if(case1=="csc")
+            result = 1/sin(value);
+            else if(case1=="cot")
+            result = 1/tan(value);
+            else if(case1=="arcsin")
+            result = asin(value);
+            else if(case1=="arccos")
+            result = acos(value);
+            else if(case1=="arctan")
+            result = atan(value);
+            else if(case1=="arcsec")
+            result = acos(1/value);
+            else if(case1=="arccsc")
+            result = asin(1/value);
+            else if(case1=="arccot")
+            result = atan(1/value);
+            else if(case1=="sqrt")
+            result = sqrt(value);
+            else if(case1=="exp")
+            result = exp(value);
+            else if(case1=="log")
+            result = log(value);
+    return result ;
+}
 /*
 #include <iostream>
 #include "CMatrix.h"
