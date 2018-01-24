@@ -47,7 +47,7 @@ void insert_name(char* array_chars, char y);
 int get_index(char * array_chars, char operand_name);
 string operationg(CMatrix* array_matrices, char* array_chars,char first_operand, string operation, char output,char second_operand,double d1=0,double d2=0);
 void check_print (string output, bool is_semicolon);
-string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars);
+string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars,string& choose);
 string do_operation_matrices (string line , CMatrix* array_matrices , char* array_chars ) ;
 double do_operation_line (string line);
 int get_num_ops (string line , string operations);
@@ -63,6 +63,7 @@ void ready(char* text,CMatrix& c ,CMatrix* array_matrices ,char* array_chars);
 void combine (string mat1,string mat2,CMatrix& c);
 CMatrix& choose_type (string case1 , int x, CMatrix* array_matrices);
 double do_this(string case1 ,double value);
+void string_matrix (string result,CMatrix* array_matrices) ;
 int main(int argc, char* argv[])
 {
 char array_chars [size];
@@ -74,7 +75,7 @@ CMatrix* array_matrices = new CMatrix [size] ;
 ifstream infile("/home/mido/Downloads/advexample.m");
 if (!infile.bad())
 {
-   string get_input , body_matrix , body_math , output , concatenate ;
+   string get_input , body_matrix , body_math , output , concatenate , decision , result1;
    bool open_bracket = false , close_bracket = false , is_semicolon;
    char c;
    int length , indicator=0 ;
@@ -82,8 +83,8 @@ if (!infile.bad())
    {
     char* text1 = new char [get_input.length()+1] ;
     strcpy(text1,get_input.c_str());
-    if(is_end(text1))
-    {
+    if(get_input=="\r"||get_input=="")
+        continue;
         length = get_input.length();
         open_bracket = (get_input.find("[",0)== -1 ) ? false : true ;
         close_bracket = (get_input.find("]",0)== -1 ) ? false : true ;
@@ -102,19 +103,19 @@ if (!infile.bad())
                 if(get_input.find("rand",index+1)!=-1)
                 {
                         trim (str2,1, nr ,nc );
-                        reserve(array_matrices,str2,1,rand(nr,nc));
+                        reserve(array_matrices,"math",1,rand(nr,nc));
                 }else if(get_input.find("eye",index+1)!=-1)
                 {
                         trim (str2,2, nr ,nc );
-                        reserve(array_matrices,str2,1,eye(nr,nc));
+                        reserve(array_matrices,"math",1,eye(nr,nc));
                 }else if(get_input.find("zeros",index+1)!=-1)
                 {
                         trim (str2,3, nr ,nc );
-                        reserve(array_matrices,str2,1,zeros(nr,nc));
+                        reserve(array_matrices,"math",1,zeros(nr,nc));
                 }else if(get_input.find("ones",index+1)!=-1)
                 {
                         trim (str2,4, nr ,nc );
-                        reserve(array_matrices,str2,1,ones(nr,nc));
+                        reserve(array_matrices,"math",1,ones(nr,nc));
                 }
                 int i = get_index(array_chars,c) ;
                 output = array_matrices[i].getString();
@@ -127,20 +128,31 @@ if (!infile.bad())
             {
                 string str1 ;
                 str1 = get_input.substr(index+1,(length-1)-index) ;
-                double d = atof(choose_type_operation (str1 , array_matrices , array_chars).c_str());
+                result1 = choose_type_operation (str1 , array_matrices , array_chars,decision);
+                if(decision=="math")
+                {
+                double d = atof(result1.c_str());
                 CMatrix C(1,1,4,d);
-                reserve(array_matrices, str1 , 1 ,C);
+                reserve(array_matrices, "math" , 1 ,C);
+                }
             }
             else
             {
                 string str1 ;
                 str1 = get_input.substr(index+1,(get_input.find(";",0)-1)-index) ;
-                double d = atof(choose_type_operation (str1 , array_matrices , array_chars).c_str());
+                result1 = choose_type_operation (str1 , array_matrices , array_chars,decision);
+                if(decision=="math")
+                {
+                double d = atof(result1.c_str());
                 CMatrix C(1,1,4,d);
-                reserve(array_matrices, get_input.substr(index+1,(length-1)-index) , 1 ,C);
+                reserve(array_matrices, "math" , 1 ,C);
+                }
             }
             int i = get_index(array_chars,c) ;
+            if(decision=="math")
             output = array_matrices[i].getString();
+            else if(decision=="matrix")
+            output = result1 ;
             char text2[3];
             sprintf(text2,"%c=\n\n",array_chars[i]);
             check_print (string(text2)+" "+output, is_semicolon);
@@ -160,7 +172,15 @@ if (!infile.bad())
             if(!indicator)
             {
             int index = get_input.find("=",0);
-            is_semicolon = (get_input.find(";",0)==-1)? false : true ;
+            for(int i = length - 1 ;i>=0;i--)
+            {
+                if(get_input.substr(i,1)==";"&&get_input.substr(i-1,1)=="]")
+                {
+                    is_semicolon = true ;
+                    break ;
+                }
+                is_semicolon = false ;
+            }
             c = trim (get_input.substr(0,index));
             insert_name(array_chars, c );
             s = get_input.substr(index+1,(length-1-index));
@@ -170,7 +190,7 @@ if (!infile.bad())
             {
                 if(s.substr(i,1)=="[")
                     no_open_brackets++;
-                else if(s.substr(i,1)=="]")
+               else if(s.substr(i,1)=="]")
                     no_closed_brackets++;
             }
             if(no_open_brackets==1&&no_closed_brackets==1)
@@ -182,8 +202,8 @@ if (!infile.bad())
                 int i = get_index(array_chars,c) ;
                 str3 = array_matrices[i].getString();
                 char text2[3];
-                sprintf(text2,"%c=\n\n",array_chars[i]);
-                check_print (string(text2)+" "+output, is_semicolon);
+                sprintf(text2,"%c=\n",array_chars[i]);
+                check_print (string(text2)+" "+str3, is_semicolon);
             }
             }else if(no_open_brackets&&!no_closed_brackets)
             {
@@ -259,7 +279,7 @@ if (!infile.bad())
                     }
                  }
               }
-             reserve(array_matrices,s,1,m);
+             reserve(array_matrices,"math",1,m);
                 if(!is_semicolon)
              {
                 string str3 ;
@@ -270,7 +290,6 @@ if (!infile.bad())
                 check_print (string(text2)+" "+output, is_semicolon);
              }
         }
-        }
     }
     delete []text1;
 }
@@ -280,7 +299,7 @@ infile.close();
 //cout<<"File read failed."<<endl;
 return 0;
 }
-bool is_end(char* text)
+/*bool is_end(char* text)
 {
     bool found_exp = false ;
     for(int i=0;i<strlen(text);i++)
@@ -290,7 +309,7 @@ bool is_end(char* text)
             found_exp = true;
     }
     return found_exp;
-}
+}*/
 char trim(string text)
 {
     for(int i=0;i<text.length();i++)
@@ -355,7 +374,12 @@ void reserve(CMatrix* array_matrices, string x , int type , CMatrix& c )
         if(type==0)
 		array_matrices[num_elements-1] = x;
 		else if(type==1)
+		{
+		if(x=="math")
 		array_matrices[num_elements-1]=c;
+		else if(x=="matrix")
+		array_matrices[num_elements-2]=c;
+		}
 		//cout<<array_matrices[num_elements-1];
 }
 // reserve char in array which is the name of matrices
@@ -525,7 +549,7 @@ float getTrace(CMatrix &mat)
 	return temp;
 }
 // choose_type_operation is it on matrices or on numbers to handle if the operation will be done on matrices or on numbers and handle case 1x1 matrix
-string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars)
+string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars,string& choose)
 {
     string result ;
     int flag1=0 , flag2=0 ;
@@ -538,28 +562,36 @@ string choose_type_operation (string line , CMatrix* array_matrices , char* arra
                 line.replace(i,1,to_string(array_matrices[get_index(array_chars,line[i])].get_values(0,0)));
                 flag1 = 1 ;
            }
-           else
+           else if(array_matrices[get_index(array_chars,line[i])].getnC()>1&&array_matrices[get_index(array_chars,line[i])].getnR()>1)
             flag2 = 1;
         }
     }
-    if(!flag1&&flag2||!flag1&&!flag2)
+    if(!flag1&&!flag2||flag1&&!flag2)
+        {
         result = to_string(do_operation_line (line));
-    else if(flag1&&!flag2||flag1&&flag2)
+        choose = "math" ;
+        }
+    else if(flag1&&flag2||!flag1&&flag2)
+        {
         result = do_operation_matrices (line , array_matrices , array_chars );
+        choose = "matrix" ;
+        }
     return result ;
 }
 //operations on matrices and get out matrix of the operation
 string do_operation_matrices (string line , CMatrix* array_matrices , char* array_chars )
 {
     string with_no_space;
-    string seperators = " ";
-    for(int o=0;o<line.length();o++)
+    char* line1 = new char [line.length()+1];
+    strcpy(line1,line.c_str());
+    char* separators = " \r\n";
+    char* token = strtok(line1,separators);
+    while(token)
     {
-        if(line.substr(o,1)==seperators)
-            line.erase(o,1);
+        with_no_space+=string(token);
+        token = strtok (NULL ,separators);
     }
-    with_no_space = line;
-    string c [10] = {"^",".^","/","./","*",".*","+",".+","-",".-"};
+    string c [11] = {"'","^",".^","/","./","*",".*","+",".+","-",".-"};
     while(with_no_space.find("sin")!=-1||with_no_space.find("cos")!=-1||with_no_space.find("tan")!=-1||with_no_space.find("sec")!=-1||with_no_space.find("csc")!=-1||with_no_space.find("cot")!=-1||with_no_space.find("arcsin")!=-1||with_no_space.find("arccos")!=-1||with_no_space.find("arctan")!=-1||with_no_space.find("arcsec")!=-1||with_no_space.find("arccsc")!=-1||with_no_space.find("arccot")!=-1||with_no_space.find("sqrtm")!=-1||with_no_space.find("expm")!=-1||with_no_space.find("logm")!=-1)
     {
         CMatrix temp ;
@@ -613,7 +645,7 @@ string do_operation_matrices (string line , CMatrix* array_matrices , char* arra
     int no_operations = get_num_ops_matrices(with_no_space,c);
     with_no_space = excute_matrices_ops(with_no_space,no_operations,c, array_matrices , array_chars);
     string result;
-    result = array_matrices[get_index(array_chars,*((const char*)with_no_space.substr(1,1).c_str()))].getString() ;
+    result = array_matrices[get_index(array_chars,*((const char*)with_no_space.substr(0,1).c_str()))].getString() ;
     return result;
 }
 // to count no_operations on matrices in one line
@@ -623,7 +655,7 @@ int get_num_ops_matrices (string line , string operations [])
     int no_operations = 0;
     for(int i=1;i<len;i++)
     {
-        for(int j=0;j<10;j++)
+        for(int j=0;j<11;j++)
         {
             if(line.find(".^",i)==i||line.find("./",i)==i||line.find(".*",i)==i||line.find(".+",i)==i||line.find(".-",i)==i)
             {
@@ -648,20 +680,20 @@ string excute_matrices_ops(string line , int no_operations , string * operations
 {
         while(no_operations>0)
     {
-            for(int h=0;h<10;h++)
+            for(int h=0;h<11;h++)
                 {
                     for(int i=1;i<line.length();i++)
                         {
-                            if(line.find(".^",i)==i||line.find("./",i)==i||line.find(".*",i)==i||line.find(".+",i)==i||line.find(".-",i)==i)
+                            if(line.substr(i,2)==".^"||line.substr(i,2)=="./"||line.substr(i,2)==".*"||line.substr(i,2)==".+"||line.substr(i,2)==".-")
                                 {
                                     if(line.substr(i,2)== operations[h])
                                     {
-                                        i++;
-                                        line = excute_matrix(line,line.substr(i,1),i,array_matrices,array_chars);
+                                        line = excute_matrix(line,line.substr(i,2),i,array_matrices,array_chars);
                                         no_operations--;
+                                         i++;
                                     }
                                 }
-                            else if(line.substr(i,1)== operations[h])
+                            else if(line.substr(i,1)== operations[h]&&line.substr(i-1,1)!=".")
                                 {
                                     line = excute_matrix(line,line.substr(i,1),i,array_matrices,array_chars);
                                     no_operations--;
@@ -674,25 +706,47 @@ string excute_matrices_ops(string line , int no_operations , string * operations
 //test case of operations
 string excute_matrix (string line , string op , int pos , CMatrix* array_matrices , char* array_chars )
 {
-   int pos_begin_op,pos_end_op;
+   int pos_begin_op = 0,pos_end_op = line.length()-1 ;
     for(int i=pos-1;i>=0;i--)
     {
-        if((line.substr(i,1)=="^"||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-")||i==0)
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-"))
         {
             pos_begin_op = i+1;
             break;
         }
     }
-    for(int i=pos+1;i<line.length();i++)
+    if(line.substr(pos,1)==".")
     {
-        if((line.substr(i,1)=="^"||line.substr(i,1)=="."||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-")||i==line.length()-1)
+      for(int i=pos+2;i<line.length();i++)
+    {
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="."||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-"))
         {
             pos_end_op = i-1;
             break;
         }
     }
+    }else
+    {
+    for(int i=pos+1;i<line.length();i++)
+    {
+        if((line.substr(i,1)=="^"||line.substr(i,1)=="."||line.substr(i,1)=="/"||line.substr(i,1)=="*"||line.substr(i,1)=="+"||line.substr(i,1)=="-"))
+        {
+            pos_end_op = i-1;
+            break;
+        }
+    }
+    }
     string rep ;
-    if(op=="^")
+    if(op=="'")
+    {
+        char first_operand = line[pos_begin_op];
+        insert_name(array_chars,char(out+my_count));
+        string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , 0) ;
+        rep = char(out+my_count);
+        line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
+        string_matrix(result,array_matrices);
+    }
+    else if(op=="^")
     {
     char first_operand = line[pos_begin_op];
     double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
@@ -700,7 +754,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op==".^")
     {
     char first_operand = line[pos_begin_op];
@@ -709,7 +763,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op=="/")
     {
     char first_operand = line[pos_begin_op];
@@ -718,20 +772,22 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op=="./")
     {
-    if(line.substr(pos_begin_op,1).length()==1&&(line[pos_begin_op]>='A'||line[pos_begin_op]<='Z'||line[pos_begin_op]>='a'||line[pos_begin_op]<='z'))
+    char* line1 = new char [line.length()+1];
+    strcpy(line1,line.c_str());
+    if((line1[pos_begin_op]>='A'&&line1[pos_begin_op]<='Z')||(line1[pos_begin_op]>='a'&&line1[pos_begin_op]<='z'))
     {
-    char first_operand = line[pos_begin_op];
+    char first_operand = line1[pos_begin_op];
     double d2 = atof(line.substr(pos+1,pos_end_op-pos).c_str());
     insert_name(array_chars,char(out+my_count));
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }
-    if(line.substr(pos_end_op,1).length()==1&&(line[pos_end_op]>='A'||line[pos_end_op]<='Z'||line[pos_end_op]>='a'||line[pos_end_op]<='z'))
+    if(line1[pos_end_op]>='A'||line1[pos_end_op]<='Z'||line1[pos_end_op]>='a'||line1[pos_end_op]<='z')
     {
     char second_operand = line[pos_end_op];
     double d1 = atof(line.substr(pos_begin_op,pos-pos_begin_op).c_str());
@@ -739,7 +795,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,second_operand, op , char(out+my_count) , 0 , d1 , 0) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }
     }else if(op=="*")
     {
@@ -749,7 +805,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op==".*")
     {
     char first_operand = line[pos_begin_op];
@@ -758,7 +814,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op=="+")
     {
     char first_operand = line[pos_begin_op];
@@ -767,7 +823,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op==".+")
     {
     char first_operand = line[pos_begin_op];
@@ -776,7 +832,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op=="-")
     {
     char first_operand = line[pos_begin_op];
@@ -785,7 +841,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , second_operand , 0 , 0) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }else if(op==".-")
     {
     char first_operand = line[pos_begin_op];
@@ -794,7 +850,7 @@ string excute_matrix (string line , string op , int pos , CMatrix* array_matrice
     string result = operationg(array_matrices,array_chars,first_operand, op , char(out+my_count) , 0 , 0 , d2) ;
     rep = char(out+my_count);
     line.replace(pos_begin_op,(pos_end_op+1)-pos_begin_op,rep);
-    reserve(array_matrices, result);
+    string_matrix(result,array_matrices);
     }
 my_count++;
 return line ;
@@ -1039,6 +1095,31 @@ double do_this(string case1 ,double value)
             else if(case1=="log")
             result = log(value);
     return result ;
+}
+void string_matrix (string result , CMatrix* array_matrices)
+{
+    CMatrix c;
+                        char* text = new char [result.length()+1];
+                        strcpy(text,result.c_str());
+                        char* first_parsing ;
+                        char* separators1 = "\r\n";
+                        char* token1 = strtok_r(text,separators1,&first_parsing);
+                        while(token1)
+                        {
+                            CMatrix row ;
+                            char* separators2 = "\t";
+                            char* second_parsing ;
+                            char* token2 = strtok_r(token1,separators2,&second_parsing);
+                            while(token2)
+                            {
+                                CMatrix item(atof(token2));
+                                row.addColumn(item);
+                                token2 = strtok_r(NULL,separators2,&second_parsing);
+                            }
+                            c.addRow(row);
+                            token1 = strtok_r(NULL,separators1,&first_parsing);
+                        }
+                        reserve(array_matrices, "matrix" , 1 ,c);
 }
 /*
 #include <iostream>

@@ -411,17 +411,15 @@ CMatrix& CMatrix::mul(CMatrix& m)
 	return r;
 }
 CMatrix& CMatrix::getTranspose(){
-    CMatrix T(nR,nC);
+   static CMatrix T(nR,nC);
     for(int i=0;i<nR;i++)
     {
         for(int j=0;j<nC;j++)
         {
-            T.values[j][i]=this->values[i][j];
+            T.values[j][i]=values[i][j];
         }
     }
-    static CMatrix b ;
-    b=T;
-    return b;
+    return  T;
 }
 CMatrix& CMatrix::getInverse(){
 if(FastestDeterminant()==0)
