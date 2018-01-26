@@ -66,13 +66,14 @@ double do_this(string case1 ,double value);
 void string_matrix (string result,CMatrix* array_matrices) ;
 int main(int argc, char* argv[])
 {
+try{
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
 
-//if (argc == 2)
-//{
+if (argc == 2)
+{
 //argv[1]
-ifstream infile("/home/mido/Downloads/advexample.m");
+ifstream infile(argv[1]);
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1;
@@ -295,8 +296,11 @@ if (!infile.bad())
 }
 }
 infile.close();
-//}else
-//cout<<"File read failed."<<endl;
+}else
+cout<<"File read failed."<<endl;
+}
+
+catch(char const* error){ cout<<"Error: "<<error<<endl; }
 return 0;
 }
 /*bool is_end(char* text)
