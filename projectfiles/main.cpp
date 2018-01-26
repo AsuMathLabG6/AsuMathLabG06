@@ -106,14 +106,7 @@ throw n;
 
 
 }
-if(NoSpaces== "\n"){
-	  char* buffer= new char [get_input.length()+1];
 
-	string n="You entered undefined value /0  in =>  "+ get_input;
-throw n;
-
-
-}
 
 
 string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
