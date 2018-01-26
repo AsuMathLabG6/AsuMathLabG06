@@ -66,13 +66,15 @@ double do_this(string case1 ,double value);
 void string_matrix (string result,CMatrix* array_matrices) ;
 int main(int argc, char* argv[])
 {
+	 try
+  {
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
 
 //if (argc == 2)
 //{
 //argv[1]
-ifstream infile("/home/mido/Downloads/advexample.m");
+ifstream infile("/home/gemi/Desktop/AsuMathLabG06/AsuMathLabG06/projectfiles/errorsexample.m");
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1;
@@ -81,11 +83,61 @@ if (!infile.bad())
    int length , indicator=0 ;
    while(getline(infile,get_input))
    {
+  //////////////////////////////////////////////////////////////////////////////////////////////// 	
+if(get_input=="\r"||get_input=="")
+        continue;
+
+   	////remove spaces from string hwa 
+string NoSpaces;
+    char* line1 = new char [get_input.length()+1];
+    strcpy(line1,get_input.c_str());
+    char* separators = " \r\n";
+    char* token = strtok(line1,separators);
+    while(token)
+    {
+        NoSpaces+=string(token);
+        token = strtok (NULL ,separators);
+    }
+if(NoSpaces.find("/0")!= -1){
+	  char* buffer= new char [get_input.length()+1];
+
+	string n="You entered undefined value /0  in =>  "+ get_input;
+throw n;
+
+
+}
+if(NoSpaces== "\n"){
+	  char* buffer= new char [get_input.length()+1];
+
+	string n="You entered undefined value /0  in =>  "+ get_input;
+throw n;
+
+
+}
+
+
+string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
+
+    char line11[1];
+    strcpy(line11,NoSpaces2.c_str());
+    char* separators2 = "^/*+-";
+    char* token2 = strtok(line11,separators2);
+      
+if (token2 <= 0) {
+string x="You entered operator as last element ";
+throw x;
+continue;	
+
+
+}
+	
+////////////////////////////////////////////////////////////////////////////////////////////
     char* text1 = new char [get_input.length()+1] ;
     strcpy(text1,get_input.c_str());
-    if(get_input=="\r"||get_input=="")
-        continue;
+
+ 
         length = get_input.length();
+
         open_bracket = (get_input.find("[",0)== -1 ) ? false : true ;
         close_bracket = (get_input.find("]",0)== -1 ) ? false : true ;
         if(!open_bracket&&!close_bracket)
@@ -297,6 +349,12 @@ if (!infile.bad())
 infile.close();
 //}else
 //cout<<"File read failed."<<endl;
+}
+catch(string e)
+
+
+		{cout<<e<<endl;}
+
 return 0;
 }
 /*bool is_end(char* text)
@@ -511,7 +569,7 @@ where n is the power of the matrix*/
 CMatrix & power_matrix(CMatrix &matrix, int number)
 {
 	if (number <= 0)
-		throw("Power must be positive Integer");
+		throw string("Power must be positive Integer");
 	if (number == 1)
 		return matrix;
 	else
@@ -532,7 +590,7 @@ CMatrix & unityMatrix(int num)
 CMatrix & sqrt_matrix(CMatrix &matrix)
 {
 	if (matrix.nC != matrix.nR)
-		throw("Matrix must be square matrix (of equal dimensions)");
+		throw string("Matrix must be square matrix (of equal dimensions)");
 	double taw = getTrace(matrix), dtrm = matrix.getDeterminant();
 	double s = sqrt(dtrm);
 	float t = sqrt(2 * s + taw);
