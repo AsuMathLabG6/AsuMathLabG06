@@ -99,7 +99,6 @@ string NoSpaces;
         token = strtok (NULL ,separators);
     }
 if(NoSpaces.find("/0")!= -1){
-	  char* buffer= new char [get_input.length()+1];
 
 	string n="You entered undefined value /0  in =>  "+ get_input;
 throw n;
