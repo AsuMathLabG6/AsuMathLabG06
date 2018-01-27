@@ -72,6 +72,7 @@ string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars)
 string check_operation_in (string matrix);
 int main(int argc, char* argv[])
 {
+try{
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
 
@@ -362,6 +363,9 @@ if (!infile.bad())
 infile.close();
 //}else
 //cout<<"File read failed."<<endl;
+}
+
+catch(char const* error){ cout<<"Error: "<<error<<endl; }
 return 0;
 }
 /*bool is_end(char* text)
