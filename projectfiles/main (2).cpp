@@ -70,6 +70,9 @@ CMatrix& add_column_matrix(int no_rows);
 string getstring (CMatrix& x );
 string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars);
 string check_operation_in (string matrix);
+CMatrix &power_matrix(CMatrix &matrix, int number);
+CMatrix &sqrt_matrix(CMatrix &matrix);
+CMatrix &unityMatrix(int num);
 int main(int argc, char* argv[])
 {
 try{
