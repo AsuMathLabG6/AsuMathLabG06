@@ -70,6 +70,9 @@ CMatrix& add_column_matrix(int no_rows);
 string getstring (CMatrix& x );
 string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars);
 string check_operation_in (string matrix);
+CMatrix &power_matrix(CMatrix &matrix, int number);
+CMatrix &sqrt_matrix(CMatrix &matrix);
+CMatrix &unityMatrix(int num);
 int main(int argc, char* argv[])
 {
 try{
@@ -575,45 +578,43 @@ CMatrix & power_by_element (CMatrix& l , double power)
     }
     return output;
 }
+/*V2.0 Branch work*/
 /*It multplies the matrix by itself n times
 where n is the power of the matrix*/
-CMatrix & power_matrix(CMatrix &matrix, int number)
+CMatrix &power_matrix(CMatrix &matrix, int number)
 {
+	static CMatrix temp = matrix;
 	if (number <= 0)
 		throw("Power must be positive Integer");
 	if (number == 1)
 		return matrix;
 	else
 	{
-		return matrix * power_matrix(matrix, number - 1);
+		for (int i = 0; i < number; i++)
+			temp = temp*matrix;
+	}
+	return temp;
+}
+/* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
+CMatrix &sqrt_matrix(CMatrix &matrix)
+{
+	if (matrix.nC != matrix.nR)
+		throw("Matrix must be square matrix (of equal dimensions)");
+	else {
+		static CMatrix X = unityMatrix(matrix.nR);
+		for (int i = 0; i < 1000; i++)
+		{
+			X = (X + matrix*X.getInverse())*0.5;
+		}
+		return X;
 	}
 }
-CMatrix & unityMatrix(int num)
+CMatrix &unityMatrix(int num)
 {
 	static CMatrix temp(num, num, 0);
 	for (int i = 0; i < num; i++)
 	{
 		temp.values[i][i] = 1.0;
-	}
-	return temp;
-}
-/* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
-CMatrix & sqrt_matrix(CMatrix &matrix)
-{
-	if (matrix.nC != matrix.nR)
-		throw("Matrix must be square matrix (of equal dimensions)");
-	double taw = getTrace(matrix), dtrm = matrix.getDeterminant();
-	double s = sqrt(dtrm);
-	float t = sqrt(2 * s + taw);
-	return (matrix + (unityMatrix(matrix.nR) * s)) * (1.0 / t);
-}
-
-float getTrace(CMatrix &mat)
-{
-	float temp = 0;
-	for (int i = 0; i < mat.nR; i++)
-	{
-		temp += mat.values[i][i];
 	}
 	return temp;
 }
