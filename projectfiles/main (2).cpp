@@ -585,6 +585,7 @@ CMatrix &power_matrix(CMatrix &matrix, int number)
 {
   static CMatrix temp = matrix;
   if (number < 0)
+
 		throw("Power must be positive Integer");
   if (number == 0)
     return unityMatrix(matrix.nR);
@@ -592,7 +593,7 @@ CMatrix &power_matrix(CMatrix &matrix, int number)
 		return matrix;
 	else
 	{
-		for (int i = 1; i < number; i++)
+    for (int i = 1; i < number; i++)
 			temp = temp*matrix;
 	}
 	return temp;
