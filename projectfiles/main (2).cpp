@@ -583,14 +583,17 @@ CMatrix & power_by_element (CMatrix& l , double power)
 where n is the power of the matrix*/
 CMatrix &power_matrix(CMatrix &matrix, int number)
 {
-	static CMatrix temp = matrix;
-	if (number <= 0)
+  static CMatrix temp = matrix;
+  if (number < 0)
+
 		throw("Power must be positive Integer");
+  if (number == 0)
+    return unityMatrix(matrix.nR);
 	if (number == 1)
 		return matrix;
 	else
 	{
-		for (int i = 0; i < number; i++)
+    for (int i = 1; i < number; i++)
 			temp = temp*matrix;
 	}
 	return temp;
