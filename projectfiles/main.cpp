@@ -408,7 +408,7 @@ infile.close();
 //cout<<"File read failed."<<endl;
 }
 
-catch(string e){ cout<<"Error: "<<error<<endl; }
+catch(string error){ cout<<"Error: "<<error<<endl; }
 return 0;
 }
 /*bool is_end(char* text)
