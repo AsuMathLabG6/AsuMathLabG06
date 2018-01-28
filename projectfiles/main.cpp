@@ -67,7 +67,7 @@ void string_matrix (string result,CMatrix* array_matrices) ;
 int is_erase(string text);
 int no_item(string text,string item);
 CMatrix& add_column_matrix(int no_rows);
-string getstring (CMatrix& x );
+string getstring (CMatrix& x , int choice);
 string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars);
 string check_operation_in (string matrix);
 CMatrix &power_matrix(CMatrix &matrix, int number);
@@ -82,7 +82,7 @@ CMatrix* array_matrices = new CMatrix [size] ;
 //if (argc == 2)
 //{
 //argv[1]
-ifstream infile("/home/mido/Downloads/advexample (copy).m");
+ifstream infile("/home/mido/Downloads/trickyexample.m");
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1 ;
@@ -934,10 +934,15 @@ return line ;
 double do_operation_line (string line)
 {
     string with_no_space;
-    string seperators = " ";
+   string seperators = " \r\n";
     for(int o=0;o<line.length();o++)
     {
-        if(line.substr(o,1)==seperators)
+         for(int u=0;u<3;u++)
+        {
+        if(line.substr(o,1)==seperators.substr(u,1))
+            line.erase(o,1);
+        }
+        if(line.find(".+")==o||line.find(".-")==o||line.find(".*")==o||line.find("./")==o||line.find(".^")==o)
             line.erase(o,1);
     }
     with_no_space = line;
@@ -956,23 +961,34 @@ double do_operation_line (string line)
     }
     while(with_no_space.find("(")!=-1&&with_no_space.find(")")!=-1)
     {
+	int from ;
         int start1 = with_no_space.find("(");
         int end1 = with_no_space.find(")");
-        while(with_no_space.find("(",start1+1)!=-1)
+        from = start1 ;
+        while(with_no_space.find("(",from+1)!=-1)
         {
-        int start2 = with_no_space.find("(",start1+1);
+        int start2 = with_no_space.find("(",from+1);
         int end2 = with_no_space.find(")",start2+1);
-        if(end2>end1)
+        if(end2>end1&&end2==with_no_space.length()-1)
             break;
+	else if(with_no_space.rfind("(",end2)!=start2)
+            from = start2 + 1 ;
+        else if(with_no_space.rfind("(",end2)==start2)
+        {
         string internal_line = with_no_space.substr(start2+1,(end2-(start2+1)));
         int no_ops = get_num_ops(internal_line,c);
         internal_line = handle_excute(internal_line,c,no_ops);
         with_no_space.replace(start2,(end2+1)-start2,internal_line);
-        }
+	from = with_no_space.rfind("(",start2)-1;
+        if(from<0)
+            from = start1 + 1 ;
+	}
+    	}
         end1 = with_no_space.find(")");
         string internal_line = with_no_space.substr(start1+1,(end1-(start1+1)));
-        int no_ops = get_num_ops(internal_line,c);
-        internal_line = handle_excute(internal_line,c,no_ops);
+         int n ;
+         n = get_num_ops(internal_line,c);
+        internal_line = handle_excute(internal_line,c,n);
         with_no_space.replace(start1,(end1+1)-start1,internal_line);
     }
     int len = with_no_space.length();
@@ -1206,13 +1222,32 @@ void combine (string matrix_inside,CMatrix& c,CMatrix* array_matrices,char* arra
 }
 string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars)
 {
+    int add_comma ;
+    int grow_by = 0 ;
+    string temp ;
     char* text = new char [matrix.length()+1];
     strcpy(text,matrix.c_str());
     for(int i=0;i<strlen(text);i++)
     {
         if(text[i]>='A'&&text[i]<='Z')
         {
-            matrix.replace(i,1,getstring(array_matrices[get_index(array_chars,text[i])]));
+           if(get_index(array_chars,text[i])==1)
+            {
+                temp = to_string(array_matrices[get_index(array_chars,text[i])].get_values(0,0)) ;
+                matrix.replace(i+grow_by,1,temp);
+                grow_by = temp.length();
+                temp.clear();
+            }else
+            {
+                if(matrix.find("]",i+1)<matrix.find("[",i+1))
+                   add_comma = 0 ;
+                else if(matrix.find("]",i+1) > matrix.find("[",i+1))
+                    add_comma = 1 ;
+                temp = getstring(array_matrices[get_index(array_chars,text[i])],add_comma) ;
+                matrix.replace(i+(grow_by-1),1,temp);
+                grow_by = temp.length();
+                temp.clear();
+            }
         }
     }
     matrix = check_operation_in (matrix);
@@ -1315,7 +1350,7 @@ void string_matrix (string result , CMatrix* array_matrices)
                         reserve(array_matrices, "matrix" , 1 ,c);
                         delete[]text;
 }
-string getstring (CMatrix& x )
+string getstring (CMatrix& x , int choice )
 {
     string s ;
     s+="[ ";
@@ -1332,6 +1367,7 @@ string getstring (CMatrix& x )
             s+=" ]";
         }
     }
+    if(choice)
     s+=",";
     return s ;
 }
