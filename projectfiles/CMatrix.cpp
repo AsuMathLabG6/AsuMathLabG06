@@ -115,15 +115,16 @@ void CMatrix::copy(string s)
 			row.addColumn(item);
 			token = strtok_r(NULL, separators, &context);
 		}
+		if (nC>0 && row.nC>0 && (row.nC != nC || nR == 0))
+  		      {
+ 		           throw("Missing Element");
+ 	 	      }
 		if (row.nC>0 && (row.nC == nC || nR == 0))
 			addRow(row);
 		line = strtok_r(NULL, lineSeparators, &lineContext);
 	}
 	delete[] buffer;
-	if (nC != nR)
-	{
-        throw("Missing Element");
-	}
+
 }
 void CMatrix::reset()
 {
