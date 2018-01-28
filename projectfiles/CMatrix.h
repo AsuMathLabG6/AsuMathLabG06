@@ -74,9 +74,22 @@ public:
 	friend CMatrix& ones(int nr,int nc);
 	friend CMatrix & power_by_element (CMatrix& l , double pow);
 	CMatrix& sin_matrix();
+	CMatrix& cos_matrix();
+	CMatrix& tan_matrix();
+	CMatrix& sec_matrix();
+	CMatrix& csc_matrix();
+	CMatrix& cot_matrix();
+	CMatrix& asin_matrix();
+	CMatrix& acos_matrix();
+	CMatrix& atan_matrix();
+	CMatrix& asec_matrix();
+	CMatrix& acsc_matrix();
+	CMatrix& acot_matrix();
+	CMatrix& log_matrix();
+	CMatrix& exp_matrix();
 	friend CMatrix &power_matrix(CMatrix &matrix, int number);
 	friend CMatrix &sqrt_matrix(CMatrix &matrix);
-	friend float getTrace(CMatrix &mat);
 	friend CMatrix &unityMatrix(int num);
+	double get_values (int r , int c);
 	};
 #endif // CMATRIX_H
