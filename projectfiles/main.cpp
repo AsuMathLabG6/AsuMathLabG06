@@ -1231,7 +1231,7 @@ string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars)
     {
         if(text[i]>='A'&&text[i]<='Z')
         {
-           if(get_index(array_chars,text[i])==1)
+           if(array_matrices[get_index(array_chars,text[i])].getnC()==1&&array_matrices[get_index(array_chars,text[i])].getnR()==1)
             {
                 temp = to_string(array_matrices[get_index(array_chars,text[i])].get_values(0,0)) ;
                 matrix.replace(i+grow_by,1,temp);
@@ -1244,7 +1244,7 @@ string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars)
                 else if(matrix.find("]",i+1) > matrix.find("[",i+1))
                     add_comma = 1 ;
                 temp = getstring(array_matrices[get_index(array_chars,text[i])],add_comma) ;
-                matrix.replace(i+(grow_by-1),1,temp);
+                matrix.replace(i+grow_by,1,temp);
                 grow_by = temp.length();
                 temp.clear();
             }
