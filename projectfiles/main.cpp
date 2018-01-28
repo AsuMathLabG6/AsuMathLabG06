@@ -91,10 +91,50 @@ if (!infile.bad())
    int length , indicator1=0 , indicator2=0 ;
    while(getline(infile,get_input))
    {
+    ////////////////////////////////////////////////////////////////////////////////////////////////    
+if(get_input=="\r"||get_input=="")
+        continue;
+
+    ////remove spaces from string hwa 
+string NoSpaces;
+    char* line1 = new char [get_input.length()+1];
+    strcpy(line1,get_input.c_str());
+    char* separators = " \r\n";
+    char* token = strtok(line1,separators);
+    while(token)
+    {
+        NoSpaces+=string(token);
+        token = strtok (NULL ,separators);
+    }
+if(NoSpaces.find("/0")!= -1){
+
+    string n="You entered undefined value /0  in =>  "+ get_input;
+throw n;
+
+
+}
+
+
+
+string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
+
+    char line11[1];
+    strcpy(line11,NoSpaces2.c_str());
+    char* separators2 = "^/*+-";
+    char* token2 = strtok(line11,separators2);
+      
+if (token2 <= 0) {
+string x="You entered operator as last element ";
+throw x;
+continue;   
+
+
+}
+    
+////////////////////////////////////////////////////////////////////////////////////////////
     char* text1 = new char [get_input.length()+1] ;
     strcpy(text1,get_input.c_str());
-    if(get_input=="\r"||get_input=="")
-        continue;
+   
         length = get_input.length();
         open_bracket = (get_input.find("[",0)== -1 ) ? false : true ;
         close_bracket = (get_input.find("]",0)== -1 ) ? false : true ;
@@ -368,7 +408,7 @@ infile.close();
 //cout<<"File read failed."<<endl;
 }
 
-catch(char const* error){ cout<<"Error: "<<error<<endl; }
+catch(string e){ cout<<"Error: "<<error<<endl; }
 return 0;
 }
 /*bool is_end(char* text)
@@ -586,7 +626,7 @@ CMatrix &power_matrix(CMatrix &matrix, int number)
   static CMatrix temp = matrix;
   if (number < 0)
 
-		throw("Power must be positive Integer");
+		throw string("Power must be positive Integer");
   if (number == 0)
     return unityMatrix(matrix.nR);
 	if (number == 1)
@@ -602,7 +642,7 @@ CMatrix &power_matrix(CMatrix &matrix, int number)
 CMatrix &sqrt_matrix(CMatrix &matrix)
 {
 	if (matrix.nC != matrix.nR)
-		throw("Matrix must be square matrix (of equal dimensions)");
+		throw string("Matrix must be square matrix (of equal dimensions)");
 	else {
 		static CMatrix Yprev = matrix;
     CMatrix Zprev = unityMatrix(matrix.nR)
