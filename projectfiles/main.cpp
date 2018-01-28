@@ -82,7 +82,7 @@ CMatrix* array_matrices = new CMatrix [size] ;
 //if (argc == 2)
 //{
 //argv[1]
-ifstream infile("/home/mido/Downloads/trickyexample.m");
+ifstream infile("/home/mido/Downloads/advexample(copy).m");
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1 ;
@@ -1235,7 +1235,7 @@ string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars)
             {
                 temp = to_string(array_matrices[get_index(array_chars,text[i])].get_values(0,0)) ;
                 matrix.replace(i+grow_by,1,temp);
-                grow_by = temp.length();
+                grow_by = temp.length()-1;
                 temp.clear();
             }else
             {
@@ -1245,7 +1245,7 @@ string check_matrix_in (string matrix,CMatrix* array_matrices,char* array_chars)
                     add_comma = 1 ;
                 temp = getstring(array_matrices[get_index(array_chars,text[i])],add_comma) ;
                 matrix.replace(i+grow_by,1,temp);
-                grow_by = temp.length();
+                grow_by = temp.length()-1;
                 temp.clear();
             }
         }
