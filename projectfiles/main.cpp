@@ -501,11 +501,11 @@ string operationg(CMatrix* array_matrices, char* array_chars,char first_operand,
 		required = array_matrices[index_output].getString();
     }else if(operation=="/")
 	{
-	try{
+	//try{
 		array_matrices[index_output] = array_matrices[index_first_operand]/array_matrices[index_second_operand];
 		required = array_matrices[index_output].getString();
-		}
-		catch(string* fault){cout<<*(fault)<<endl;}
+	//	}
+	//	catch(string* fault){cout<<*(fault)<<endl;}
     }else if(operation=="'")
 	{
 		array_matrices[index_output] = array_matrices[index_first_operand].getTranspose();
