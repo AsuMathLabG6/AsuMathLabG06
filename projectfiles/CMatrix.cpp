@@ -2,7 +2,6 @@
 #include "stdarg.h"
 #include <algorithm>
 #include <math.h>
-#include "stdio.h"
 CMatrix::CMatrix()
 {
 	nR = nC = 0;
@@ -120,10 +119,6 @@ void CMatrix::copy(string s)
 		line = strtok_r(NULL, lineSeparators, &lineContext);
 	}
 	delete[] buffer;
-	if (nC != nR)
-	{
-        throw("Mssing Element");
-	}
 }
 void CMatrix::reset()
 {

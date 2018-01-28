@@ -89,6 +89,7 @@ public:
 	CMatrix& exp_matrix();
 	friend CMatrix &power_matrix(CMatrix &matrix, int number);
 	friend CMatrix &sqrt_matrix(CMatrix &matrix);
+	friend float getTrace(CMatrix &mat);
 	friend CMatrix &unityMatrix(int num);
 	double get_values (int r , int c);
 	};
