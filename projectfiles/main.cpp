@@ -604,17 +604,26 @@ CMatrix &sqrt_matrix(CMatrix &matrix)
 	if (matrix.nC != matrix.nR)
 		throw("Matrix must be square matrix (of equal dimensions)");
 	else {
-		static CMatrix X = unityMatrix(matrix.nR);
-		for (int i = 0; i < 1000; i++)
+		static CMatrix Yprev = matrix;
+    CMatrix Zprev = unityMatrix(matrix.nR)
+           ,Ynext
+           ,Znext
+           ,unity = unityMatrix(matrix.nR);
+		for (int i = 0; i < 10; i++)
 		{
-			X = (X + matrix*X.getInverse())*0.5;
+
+			Ynext = Yprev * 0.5 * (unity * 3.0 - Zprev * Yprev);
+      Znext = Zprev * 0.5 * (unity * 3.0 - Zprev * Yprev);
+
+      Yprev= Ynext;
+      Zprev = Znext;
 		}
-		return X;
+		return Yprev;
 	}
 }
 CMatrix &unityMatrix(int num)
 {
-	static CMatrix temp(num, num, 0);
+	static CMatrix temp(num, num, CMatrix::MI_ZEROS,0);
 	for (int i = 0; i < num; i++)
 	{
 		temp.values[i][i] = 1.0;
