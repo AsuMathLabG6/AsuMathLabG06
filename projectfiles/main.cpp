@@ -8,7 +8,6 @@
 #include <fstream>
 using namespace std;
 #define size 100
-//enum MI{ MI_ZEROS, MI_ONES, MI_EYE, MI_RAND, MI_VALUE };
 CMatrix& eye(int nr,int nc)
 {
 static CMatrix w;
