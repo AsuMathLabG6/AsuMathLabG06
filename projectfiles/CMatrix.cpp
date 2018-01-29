@@ -124,8 +124,7 @@ void CMatrix::copy(string s)
 			addRow(row);
 		line = strtok_r(NULL, lineSeparators, &lineContext);
 	}
-	delete[] buffer;
-	
+	delete[] buffer;	
 }
 void CMatrix::reset()
 {
