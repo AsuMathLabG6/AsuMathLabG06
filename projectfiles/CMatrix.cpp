@@ -2,6 +2,7 @@
 #include "stdarg.h"
 #include <algorithm>
 #include <math.h>
+CMatrix &unityMatrix(int num);
 CMatrix::CMatrix()
 {
 	nR = nC = 0;
@@ -428,6 +429,8 @@ if(FastestDeterminant()==0)
  CMatrix A;
  double d ;
 if(nC == 0||nR == 0) throw("Invalid matrix dimension");
+else if (*this == unityMatrix(this->nR))
+    return *this;
 else if(nC==1&&nR==1)
 {
     a.values[0][0]=1/values[0][0];
@@ -734,4 +737,16 @@ double CMatrix::get_values (int r , int c)
         }
     }
     return value;
+}
+bool CMatrix::operator==(CMatrix mat)
+{
+    for (int i = 0; i < this->nR; i++)
+    {
+        for (int j = 0; j < this->nC; j++)
+        {
+            if (mat.values[i][j] != this->values[i][j])
+                return false;
+        }
+    }
+    return true;
 }

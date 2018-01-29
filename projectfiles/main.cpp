@@ -583,52 +583,55 @@ CMatrix & power_by_element (CMatrix& l , double power)
 where n is the power of the matrix*/
 CMatrix &power_matrix(CMatrix &matrix, int number)
 {
-  static CMatrix temp = matrix;
-  if (number < 0)
+    static CMatrix temp = matrix;
+    if (number < 0)
 
-		throw("Power must be positive Integer");
-  if (number == 0)
-    return unityMatrix(matrix.nR);
-	if (number == 1)
-		return matrix;
-	else
-	{
-    for (int i = 1; i < number; i++)
-			temp = temp*matrix;
-	}
-	return temp;
+        throw("Power must be positive Integer");
+    if (number == 0)
+        return unityMatrix(matrix.nR);
+    if (number == 1)
+        return matrix;
+    else
+    {
+        for (int i = 1; i < number; i++)
+            temp = temp * matrix;
+    }
+    return temp;
 }
 /* send the matrix as a parameter and it returns back the square root of the matrix which is a matrix too*/
 CMatrix &sqrt_matrix(CMatrix &matrix)
 {
-	if (matrix.nC != matrix.nR)
-		throw("Matrix must be square matrix (of equal dimensions)");
-	else {
-		static CMatrix Yprev = matrix;
-    CMatrix Zprev = unityMatrix(matrix.nR)
-           ,Ynext
-           ,Znext
-           ,unity = unityMatrix(matrix.nR);
-		for (int i = 0; i < 10; i++)
-		{
+    if (matrix.nC != matrix.nR)
+        throw("Matrix must be square matrix (of equal dimensions)");
+    else
+    {
+        static CMatrix Yprev = matrix;
+        static CMatrix Zprev = unityMatrix(matrix.nR);
+        CMatrix Ynext, Znext, unity = unityMatrix(matrix.nR);
+        if (matrix.FastestDeterminant() == 0)
+            throw("Matrix is singular and can't have a square root");
+        for (int i = 0; i < 10; i++)
+        {
+            Ynext = (Yprev + Zprev.getInverse()) * 0.5; // first approach
+            // Ynext = Yprev * 0.5 * (unity * 3.0 - Zprev * Yprev); //second approach
 
-			Ynext = Yprev * 0.5 * (unity * 3.0 - Zprev * Yprev);
-      Znext = Zprev * 0.5 * (unity * 3.0 - Zprev * Yprev);
+            Znext = (Zprev + Yprev.getInverse()) * 0.5; //first approach
+            // Znext = Zprev * 0.5 * (unity * 3.0 - Zprev * Yprev); //second approach
 
-      Yprev= Ynext;
-      Zprev = Znext;
-		}
-		return Yprev;
-	}
+            Yprev = Ynext;
+            Zprev = Znext;
+        }
+        return Yprev;
+    }
 }
 CMatrix &unityMatrix(int num)
 {
-	static CMatrix temp(num, num, CMatrix::MI_ZEROS,0);
-	for (int i = 0; i < num; i++)
-	{
-		temp.values[i][i] = 1.0;
-	}
-	return temp;
+    static CMatrix temp(num, num, CMatrix::MI_ZEROS, 0);
+    for (int i = 0; i < num; i++)
+    {
+        temp.values[i][i] = 1.0;
+    }
+    return temp;
 }
 // choose_type_operation is it on matrices or on numbers to handle if the operation will be done on matrices or on numbers and handle case 1x1 matrix
 string choose_type_operation (string line , CMatrix* array_matrices , char* array_chars,string& choose)
