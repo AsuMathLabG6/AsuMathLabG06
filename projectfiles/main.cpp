@@ -79,10 +79,9 @@ try{
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
 
-//if (argc == 2)
-//{
-//argv[1]
-ifstream infile("/home/gemi/AsuMathLabG06/projectfiles/errorsexample.m");
+if (argc == 2)
+{
+ifstream infile(argv[1]);
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1 ;
@@ -430,8 +429,8 @@ continue;
 }
 }
 infile.close();
-//}else
-//cout<<"File read failed."<<endl;
+}else
+cout<<"File read failed."<<endl;
 }
 
 catch(char const* error){ cout<<"Error: "<<error<<endl; }
