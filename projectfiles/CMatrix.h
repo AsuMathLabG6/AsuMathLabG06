@@ -92,5 +92,6 @@ public:
 	friend float getTrace(CMatrix &mat);
 	friend CMatrix &unityMatrix(int num);
 	double get_values (int r , int c);
+	bool operator==(CMatrix mat);
 	};
 #endif // CMATRIX_H
