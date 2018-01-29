@@ -91,6 +91,7 @@ if (!infile.bad())
    int length , indicator1=0 , indicator2=0 ;
    while(getline(infile,get_input))
    {
+
     ////////////////////////////////////////////////////////////////////////////////////////////////    
 if(get_input=="\r"||get_input=="")
         continue;
@@ -108,8 +109,8 @@ string NoSpaces;
     }
 if(NoSpaces.find("/0")!= -1){
 
-    string n="You entered undefined value /0  in =>  "+ get_input;
-throw n;
+    throw("You entered undefined value /0");
+
 
 
 }
@@ -124,14 +125,15 @@ string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
     char* token2 = strtok(line11,separators2);
       
 if (token2 <= 0) {
-string x="You entered operator as last element ";
-throw x;
+throw("You entered operator as last element ");
+
 continue;   
 
 
 }
     
 ////////////////////////////////////////////////////////////////////////////////////////////
+
     char* text1 = new char [get_input.length()+1] ;
     strcpy(text1,get_input.c_str());
    
@@ -408,7 +410,7 @@ infile.close();
 //cout<<"File read failed."<<endl;
 }
 
-catch(string error){ cout<<"Error: "<<error<<endl; }
+catch(char const* error){ cout<<"Error: "<<error<<endl; }
 return 0;
 }
 /*bool is_end(char* text)
@@ -626,7 +628,7 @@ CMatrix &power_matrix(CMatrix &matrix, int number)
   static CMatrix temp = matrix;
   if (number < 0)
 
-		throw string("Power must be positive Integer");
+		throw("Power must be positive Integer");
   if (number == 0)
     return unityMatrix(matrix.nR);
 	if (number == 1)
@@ -642,7 +644,7 @@ CMatrix &power_matrix(CMatrix &matrix, int number)
 CMatrix &sqrt_matrix(CMatrix &matrix)
 {
 	if (matrix.nC != matrix.nR)
-		throw string("Matrix must be square matrix (of equal dimensions)");
+		throw("Matrix must be square matrix (of equal dimensions)");
 	else {
 		static CMatrix Yprev = matrix;
     CMatrix Zprev = unityMatrix(matrix.nR)
