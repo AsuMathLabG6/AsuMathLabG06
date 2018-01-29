@@ -2,7 +2,10 @@
 #include "stdarg.h"
 #include <algorithm>
 #include <math.h>
+#include "stdio.h"
+
 CMatrix &unityMatrix(int num);
+
 CMatrix::CMatrix()
 {
 	nR = nC = 0;
@@ -115,11 +118,16 @@ void CMatrix::copy(string s)
 			row.addColumn(item);
 			token = strtok_r(NULL, separators, &context);
 		}
+		if (nC>0 && row.nC>0 && (row.nC != nC || nR == 0))
+  		      {
+ 		           throw("Missing Element");
+ 	 	      }
 		if (row.nC>0 && (row.nC == nC || nR == 0))
 			addRow(row);
 		line = strtok_r(NULL, lineSeparators, &lineContext);
 	}
 	delete[] buffer;
+
 }
 void CMatrix::reset()
 {
@@ -424,7 +432,7 @@ CMatrix& CMatrix::getTranspose(){
 }
 CMatrix& CMatrix::getInverse(){
 if(FastestDeterminant()==0)
-    throw (new string ("error zero determinent invalid division"));
+    throw ("error zero determinent invalid division");
  CMatrix a(nR,nC);
  CMatrix A;
  double d ;

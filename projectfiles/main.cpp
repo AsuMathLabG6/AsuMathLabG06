@@ -79,10 +79,9 @@ try{
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
 
-//if (argc == 2)
-//{
-//argv[1]
-ifstream infile("/home/mido/Downloads/advexample(copy).m");
+if (argc == 2)
+{
+ifstream infile(argv[1]);
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1 ;
@@ -91,10 +90,76 @@ if (!infile.bad())
    int length , indicator1=0 , indicator2=0 ;
    while(getline(infile,get_input))
    {
+
+     ////////////////////////////////////////////////////////////////////////////////////////////////    
+if(get_input=="\r"||get_input=="")
+        continue;
+
+    ////remove spaces from string  
+string NoSpaces;
+    char* line1 = new char [get_input.length()+1];
+    strcpy(line1,get_input.c_str());
+    char* separators = " \r\n";
+    char* token = strtok(line1,separators);
+    while(token)
+    {
+        NoSpaces+=string(token);
+        token = strtok (NULL ,separators);
+    }
+    //////////finding /0 elements in input 
+if(NoSpaces.find("/0")!= -1){
+
+    throw("You entered undefined value /0");
+
+
+
+}
+ //////////finding () elements in input 
+if(NoSpaces.find("()")!= -1){
+
+    throw(" syntax error unknown element ()");
+
+
+
+}
+
+if(NoSpaces.find("?")!= -1){
+
+    throw(" syntax error unknown element ?");
+
+
+
+}
+/// to check if element has operator ass last element except formats like a++ 
+string s1="1";
+string s2="2";
+if(NoSpaces.length()>1){
+
+ s1=NoSpaces.substr(1,1);
+ s2=NoSpaces.substr(2,1);
+}
+if(s1.compare(s2) || NoSpaces.length()>4){
+string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
+
+    char line11[1];
+    strcpy(line11,NoSpaces2.c_str());
+    char* separators2 = "^/*+-";
+    char* token2 = strtok(line11,separators2);
+      
+if (token2 <= 0) {
+throw("syntax error invalid operator format");
+
+continue;   
+
+
+}}
+    
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
     char* text1 = new char [get_input.length()+1] ;
     strcpy(text1,get_input.c_str());
-    if(get_input=="\r"||get_input=="")
-        continue;
+   
         length = get_input.length();
         open_bracket = (get_input.find("[",0)== -1 ) ? false : true ;
         close_bracket = (get_input.find("]",0)== -1 ) ? false : true ;
@@ -364,8 +429,8 @@ if (!infile.bad())
 }
 }
 infile.close();
-//}else
-//cout<<"File read failed."<<endl;
+}else
+cout<<"File read failed."<<endl;
 }
 
 catch(char const* error){ cout<<"Error: "<<error<<endl; }
@@ -501,11 +566,11 @@ string operationg(CMatrix* array_matrices, char* array_chars,char first_operand,
 		required = array_matrices[index_output].getString();
     }else if(operation=="/")
 	{
-	try{
+	//try{
 		array_matrices[index_output] = array_matrices[index_first_operand]/array_matrices[index_second_operand];
 		required = array_matrices[index_output].getString();
-		}
-		catch(string* fault){cout<<*(fault)<<endl;}
+	//	}
+	//	catch(string* fault){cout<<*(fault)<<endl;}
     }else if(operation=="'")
 	{
 		array_matrices[index_output] = array_matrices[index_first_operand].getTranspose();
