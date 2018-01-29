@@ -78,7 +78,6 @@ int main(int argc, char* argv[])
 try{
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
-
 if (argc == 2)
 {
 ifstream infile(argv[1]);
