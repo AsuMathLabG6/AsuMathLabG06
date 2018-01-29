@@ -125,7 +125,6 @@ void CMatrix::copy(string s)
 		line = strtok_r(NULL, lineSeparators, &lineContext);
 	}
 	delete[] buffer;
-
 }
 void CMatrix::reset()
 {
@@ -445,7 +444,7 @@ else if(nC==1&&nR==1)
 else if(nC==2&&nR==2)
     {
     double d ;
-    d= 1/FastestDeterminant()();
+    d= 1/FastestDeterminant();
     a.values[0][0]=this->values[1][1]*d;
     a.values[1][1]=this->values[0][0]*d;
     a.values[0][1]=-1*this->values[0][1]*d;
