@@ -2,6 +2,8 @@
 #include "stdarg.h"
 #include <algorithm>
 #include <math.h>
+#include "stdio.h"
+CMatrix &unityMatrix(int num);
 CMatrix::CMatrix()
 {
 	nR = nC = 0;
@@ -114,11 +116,16 @@ void CMatrix::copy(string s)
 			row.addColumn(item);
 			token = strtok_r(NULL, separators, &context);
 		}
+		if (nC>0 && row.nC>0 && (row.nC != nC || nR == 0))
+  		      {
+ 		           throw("Missing Element");
+ 	 	      }
 		if (row.nC>0 && (row.nC == nC || nR == 0))
 			addRow(row);
 		line = strtok_r(NULL, lineSeparators, &lineContext);
 	}
 	delete[] buffer;
+	
 }
 void CMatrix::reset()
 {
@@ -424,11 +431,13 @@ CMatrix& CMatrix::getTranspose(){
 CMatrix& CMatrix::getInverse(){
 int sign = 1 ;
 if(FastestDeterminant()==0)
-    throw (new string ("error zero determinent invalid division"));
+    throw ("error zero determinent invalid division");
  CMatrix a(nR,nC);
  CMatrix A;
  double d ;
 if(nC == 0||nR == 0) throw("Invalid matrix dimension");
+else if (*this == unityMatrix(this->nR))
+    return *this;
 else if(nC==1&&nR==1)
 {
     a.values[0][0]=1/values[0][0];
@@ -741,4 +750,16 @@ double CMatrix::get_values (int r , int c)
         }
     }
     return value;
+}
+bool CMatrix::operator==(CMatrix mat)
+{
+    for (int i = 0; i < this->nR; i++)
+    {
+        for (int j = 0; j < this->nC; j++)
+        {
+            if (mat.values[i][j] != this->values[i][j])
+                return false;
+        }
+    }
+    return true;
 }
