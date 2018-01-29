@@ -77,10 +77,9 @@ int main(int argc, char* argv[])
 try{
 char array_chars [size];
 CMatrix* array_matrices = new CMatrix [size] ;
-//if (argc == 2)
-//{
-//argv[1]
-ifstream infile("/home/mido/Downloads/advexample(copy).m");
+if (argc == 2)
+{
+ifstream infile(argv[1]);
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1 ;
