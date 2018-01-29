@@ -3,9 +3,7 @@
 #include <algorithm>
 #include <math.h>
 #include "stdio.h"
-
 CMatrix &unityMatrix(int num);
-
 CMatrix::CMatrix()
 {
 	nR = nC = 0;
@@ -148,7 +146,7 @@ string CMatrix::getString()
 		for (int iC = 0; iC<nC; iC++)
 		{
 			char buffer[50];
-			snprintf(buffer, 50, "%g\t", values[iR][iC]);
+			sprintf(buffer, "%g\t", values[iR][iC]);
 			s += buffer;
 		} s
 			+= "\n";
@@ -431,6 +429,7 @@ CMatrix& CMatrix::getTranspose(){
     return  T;
 }
 CMatrix& CMatrix::getInverse(){
+int sign = 1 ;
 if(FastestDeterminant()==0)
     throw ("error zero determinent invalid division");
  CMatrix a(nR,nC);
@@ -446,24 +445,29 @@ else if(nC==1&&nR==1)
 else if(nC==2&&nR==2)
     {
     double d ;
-    d= 1/getDeterminant();
+    d= 1/FastestDeterminant()();
     a.values[0][0]=this->values[1][1]*d;
     a.values[1][1]=this->values[0][0]*d;
     a.values[0][1]=-1*this->values[0][1]*d;
     a.values[1][0]=-1*this->values[1][0]*d;
     }
 else{
+	double det = FastestDeterminant() ;
+        *this=getTranspose();
         for(int ir=0;ir<nR;ir++)
         {
           for(int ic=0;ic<nC;ic++)
           {
             A=getCofactor(ir, ic);
             d=A.FastestDeterminant();
-            a.values[ir][ic]=d*pow(-1,(ir+ic));
+            if(d==0)
+            a.values[ir][ic]= 0 ;
+            else
+            a.values[ir][ic]= d*sign ;
+            sign *= -1;
           }
         }
-        a=a.getTranspose();
-        d=1/FastestDeterminant();
+        d=1/det;
         a*=d;
     }
     static CMatrix v ;
@@ -488,7 +492,8 @@ CMatrix t;
 d=*this;
 for(int i=1;i<nR;i++)
 {
-
+    if(values[0][0]==0)
+        break;
     ratio=values[i][0]/values[0][0];
     for(int j=0;j<nC;j++)
     {
