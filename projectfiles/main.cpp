@@ -82,7 +82,7 @@ CMatrix* array_matrices = new CMatrix [size] ;
 //if (argc == 2)
 //{
 //argv[1]
-ifstream infile("/home/mido/Downloads/advexample(copy).m");
+ifstream infile("/home/gemi/AsuMathLabG06/projectfiles/errorsexample.m");
 if (!infile.bad())
 {
    string get_input , body_matrix , body_math , output , concatenate , decision , result1 ;
@@ -92,11 +92,11 @@ if (!infile.bad())
    while(getline(infile,get_input))
    {
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////    
+     ////////////////////////////////////////////////////////////////////////////////////////////////    
 if(get_input=="\r"||get_input=="")
         continue;
 
-    ////remove spaces from string hwa 
+    ////remove spaces from string  
 string NoSpaces;
     char* line1 = new char [get_input.length()+1];
     strcpy(line1,get_input.c_str());
@@ -107,6 +107,7 @@ string NoSpaces;
         NoSpaces+=string(token);
         token = strtok (NULL ,separators);
     }
+    //////////finding /0 elements in input 
 if(NoSpaces.find("/0")!= -1){
 
     throw("You entered undefined value /0");
@@ -114,9 +115,31 @@ if(NoSpaces.find("/0")!= -1){
 
 
 }
+ //////////finding () elements in input 
+if(NoSpaces.find("()")!= -1){
+
+    throw(" syntax error unknown element ()");
 
 
 
+}
+
+if(NoSpaces.find("?")!= -1){
+
+    throw(" syntax error unknown element ?");
+
+
+
+}
+/// to check if element has operator ass last element except formats like a++ 
+string s1="1";
+string s2="2";
+if(NoSpaces.length()>1){
+
+ s1=NoSpaces.substr(1,1);
+ s2=NoSpaces.substr(2,1);
+}
+if(s1.compare(s2) || NoSpaces.length()>4){
 string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
 
     char line11[1];
@@ -125,14 +148,15 @@ string NoSpaces2=NoSpaces.substr(NoSpaces.length()-1);
     char* token2 = strtok(line11,separators2);
       
 if (token2 <= 0) {
-throw("You entered operator as last element ");
+throw("syntax error invalid operator format");
 
 continue;   
 
 
-}
+}}
     
 ////////////////////////////////////////////////////////////////////////////////////////////
+
 
     char* text1 = new char [get_input.length()+1] ;
     strcpy(text1,get_input.c_str());
