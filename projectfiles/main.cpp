@@ -406,8 +406,8 @@ continue;
 }
 }
 infile.close();
-}else
-cout<<"File read failed."<<endl;
+//}else
+//cout<<"File read failed."<<endl;
 }
 
 catch(char const* error){ cout<<"Error: "<<error<<endl; }
